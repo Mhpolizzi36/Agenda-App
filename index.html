@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agenda — Assignment Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root,[data-theme="dark"]{--bg:#1b1f2e;--card:#13161f;--border:#272c3d;--muted:#3a4055;--fg:#e8eaf2;--fg2:#8a90a8;--fg3:#4a5070;--primary:#e8b95a;--primary-fg:#13161f;--accent:#5b8af0;--green:#5dd9a0;--red:#e85b5b;--purple:#b07bf0;--orange:#e88a40;--blue:#4a90d9;--radius:10px}
+[data-theme="light"]{--bg:#f0f2f7;--card:#ffffff;--border:#dde1ed;--muted:#eef0f7;--fg:#1a1d2e;--fg2:#5a6280;--fg3:#9aa0be;--primary:#c49020;--primary-fg:#ffffff;--accent:#3d6fd6;--green:#27ae6e;--red:#d63b3b;--purple:#8b5ce0;--orange:#d4720a;--blue:#2471a3;--radius:10px}
+[data-theme="ocean"]{--bg:#081828;--card:#0c1e32;--border:#183050;--muted:#102438;--fg:#c8e4ff;--fg2:#5a88b0;--fg3:#2a5878;--primary:#38b2f0;--primary-fg:#081828;--accent:#40d0b8;--green:#3de0a0;--red:#e85060;--purple:#a060f0;--orange:#f09040;--blue:#3498db;--radius:10px}
+[data-theme="forest"]{--bg:#0c1a0e;--card:#091408;--border:#183020;--muted:#182c1a;--fg:#c8f0d0;--fg2:#60a070;--fg3:#386048;--primary:#50d070;--primary-fg:#0c1a0e;--accent:#48c898;--green:#70e878;--red:#e85858;--purple:#a870e8;--orange:#e8a038;--blue:#5dade2;--radius:10px}
+[data-theme="rose"]{--bg:#1e0e14;--card:#170810;--border:#38182a;--muted:#2c1420;--fg:#f0d0d8;--fg2:#b07888;--fg3:#684858;--primary:#f070a0;--primary-fg:#1e0e14;--accent:#f05880;--green:#78d898;--red:#f04848;--purple:#c070f0;--orange:#f09050;--blue:#5dade2;--radius:10px}
+body{background:var(--bg);color:var(--fg);font-family:'DM Mono',monospace;font-size:13px;min-height:100vh;display:flex;transition:background .2s,color .2s}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
+[data-theme="light"] body::before{opacity:.08}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+button{cursor:pointer;font-family:inherit;font-size:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit;background:var(--muted);border:1px solid var(--border);color:var(--fg);border-radius:var(--radius);padding:6px 10px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);display:block;margin-bottom:4px}
+h1{font-family:'Fraunces',serif;font-size:20px;font-weight:300}
+h1 em{font-style:italic;color:var(--primary)}
+.syne{font-family:'Syne',sans-serif}.serif{font-family:'Fraunces',serif}
+#sidebar{width:220px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;transition:width .25s,background .2s,border-color .2s;overflow:hidden;z-index:50}
+#sidebar.collapsed{width:56px}
+#main{margin-left:220px;flex:1;min-height:100vh;transition:margin-left .25s}
+#sidebar.collapsed~#main{margin-left:56px}
+.sb-logo{padding:18px 14px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;white-space:nowrap;overflow:hidden}
+.sb-logo-text .name{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--primary);letter-spacing:-.5px}
+.sb-logo-text .sub{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--fg3);margin-top:1px}
+.sb-toggle{background:none;border:1px solid var(--border);border-radius:6px;color:var(--fg2);padding:4px 7px;transition:color .15s;flex-shrink:0}
+.sb-toggle:hover{color:var(--fg)}
+.sb-nav{flex:1;overflow-y:auto;padding:8px 8px}
+.sb-section-label{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg3);padding:10px 10px 4px}
+.sb-link{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;color:var(--fg2);font-size:11px;font-weight:500;text-decoration:none;border:1px solid transparent;margin-bottom:2px;white-space:nowrap;overflow:hidden;transition:all .15s;background:none;width:100%;text-align:left}
+.sb-link:hover{background:var(--muted);color:var(--fg)}
+.sb-link.active{background:rgba(232,185,90,.08);color:var(--primary);border-color:rgba(232,185,90,.2)}
+[data-theme="light"] .sb-link.active{background:rgba(196,144,32,.1);border-color:rgba(196,144,32,.3)}
+.sb-link svg{flex-shrink:0}
+.sb-class-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sb-class-link{display:flex;align-items:center;gap:7px;padding:6px 10px 6px 18px;border-radius:7px;color:var(--fg3);font-size:10px;text-decoration:none;white-space:nowrap;overflow:hidden;transition:all .15s;background:none;border:1px solid transparent;width:100%;text-align:left}
+.sb-class-link:hover{background:var(--muted);color:var(--fg2)}
+.sb-footer{padding:8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.btn-primary{background:var(--primary);color:var(--primary-fg);border:none;border-radius:7px;padding:7px 12px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;transition:opacity .15s;width:100%;justify-content:center}
+.btn-primary:hover{opacity:.88}
+.btn-secondary,.btn-settings{background:var(--muted);color:var(--fg2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:11px;display:flex;align-items:center;gap:6px;transition:all .15s;width:100%;justify-content:center;cursor:pointer}
+.btn-secondary:hover,.btn-settings:hover{border-color:var(--primary);color:var(--primary)}
+.page{display:none}.page.active{display:block}
+.page-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:var(--card)}
+.page-body{padding:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-pad{padding:20px}
+.grid{display:grid;gap:14px}.grid-4{grid-template-columns:repeat(4,1fr)}.grid-3{grid-template-columns:repeat(3,1fr)}.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3-col{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(2,1fr)}.grid-3-col{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.grid-4,.grid-3,.grid-2,.grid-3-col{grid-template-columns:1fr}}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
+.stat-card:hover{border-color:rgba(138,144,168,.3)}
+.stat-card .corner{position:absolute;top:0;right:0;width:48px;height:48px;border-radius:0 0 0 48px;opacity:.12}
+.stat-label{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg2);margin-bottom:6px}
+.stat-value{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1}
+.stat-sub{font-size:9px;color:var(--fg3);margin-top:4px}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:1px solid var(--border)}
+th{text-align:left;padding:9px 13px;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);font-weight:500}
+th.sortable{cursor:pointer;user-select:none;transition:color .15s;white-space:nowrap}
+th.sortable:hover{color:var(--primary)}
+th.sort-asc::after{content:' ↑';color:var(--primary)}th.sort-desc::after{content:' ↓';color:var(--primary)}
+td{padding:9px 13px;border-bottom:1px solid var(--border);font-size:11.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(58,64,85,.3)}
+[data-theme="light"] tbody tr:hover{background:rgba(0,0,0,.04)}
+.badge{display:inline-block;padding:2px 7px;border-radius:5px;font-size:9.5px;font-weight:500;border:1px solid}
+.badge-green{background:rgba(93,217,160,.08);color:var(--green);border-color:rgba(93,217,160,.25)}
+.badge-red{background:rgba(232,91,91,.08);color:var(--red);border-color:rgba(232,91,91,.25)}
+.badge-blue{background:rgba(91,138,240,.08);color:var(--accent);border-color:rgba(91,138,240,.25)}
+.badge-yellow{background:rgba(232,185,90,.08);color:var(--primary);border-color:rgba(232,185,90,.25)}
+.badge-purple{background:rgba(176,123,240,.1);color:var(--purple);border-color:rgba(176,123,240,.3)}
+.badge-gray{background:var(--muted);color:var(--fg2);border-color:var(--border)}
+.badge-planning{background:rgba(74,144,217,.1);color:var(--blue);border-color:rgba(74,144,217,.3)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;border:1px solid var(--border);background:var(--muted);font-size:9.5px;color:var(--fg2)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;font-family:inherit}
+.btn-main{background:var(--primary);color:var(--primary-fg);border-color:var(--primary)}.btn-main:hover{opacity:.88}
+.btn-ghost{background:transparent;color:var(--fg2);border-color:var(--border)}.btn-ghost:hover{color:var(--fg);border-color:var(--fg3)}
+.btn-sm{padding:3px 8px;font-size:10px;border-radius:5px}
+.btn-danger:hover{color:var(--red);border-color:var(--red)}.btn-done:hover{color:var(--green);border-color:var(--green)}
+.class-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:all .2s}
+.class-card:hover{border-color:rgba(138,144,168,.4);transform:translateY(-1px)}
+.class-card .top-bar{position:absolute;top:0;left:0;right:0;height:2px}
+.class-card .class-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-top:4px}
+.class-card .class-sub{font-size:10px;color:var(--fg2);margin-bottom:10px}
+.class-card .grade-big{font-family:'Fraunces',serif;font-size:36px;font-weight:600;line-height:1}
+.progress-bar{height:3px;background:var(--border);border-radius:3px;margin:8px 0 10px}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s}
+.class-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:9.5px;color:var(--fg3)}
+.class-meta span em{color:var(--fg2);font-style:normal}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:24px}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:24px}
+.day-cell{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);min-height:140px;overflow:hidden;transition:border-color .15s}
+.day-cell.today{border-color:rgba(232,185,90,.45)}
+.day-cell.clickable-day:hover{border-color:rgba(91,138,240,.5);cursor:pointer}
+.day-cell.drag-over{border-color:var(--accent);background:rgba(91,138,240,.08)!important;border-style:dashed}
+.month-cell{background:var(--card);border:1px solid var(--border);border-radius:8px;min-height:90px;overflow:hidden}
+.month-cell.today{border-color:rgba(232,185,90,.45)}.month-cell.other-month{opacity:.4}
+.month-cell.clickable-day:hover{border-color:rgba(91,138,240,.5);cursor:pointer}
+.day-header{padding:8px 10px;border-bottom:1px solid var(--border)}.month-header{padding:5px 8px;border-bottom:1px solid var(--border)}
+.day-num{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;line-height:1.1}
+.day-name{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)}
+.day-tasks{padding:6px}
+.day-task{padding:5px 7px;border-radius:5px;font-size:9.5px;cursor:grab;border-left:2px solid;margin-bottom:4px;transition:opacity .15s,transform .15s;line-height:1.3;user-select:none}
+.day-task:active{cursor:grabbing;opacity:.7;transform:scale(.97)}
+.day-task:hover{opacity:.8}.day-task .tc{font-size:8px;display:block}
+.day-task.done-task{opacity:.3;text-decoration:line-through}.day-task.due-task{border-left-style:dashed}.day-task.my-plan-task{border-left-style:solid;border-left-width:3px}
+.day-task.dragging{opacity:.4;transform:scale(.95)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:16px}
+.form-grid{display:grid;gap:10px}.form-grid-2{grid-template-columns:1fr 1fr}.form-grid-3{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.section-label-sm{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:6px;margin-top:4px}
+.color-picker{display:flex;gap:7px;flex-wrap:wrap;padding-top:4px}
+.color-swatch{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s}
+.color-swatch.selected{border-color:#fff;transform:scale(1.15)}
+.mode-toggle{display:flex;gap:6px;margin-bottom:12px}
+.mode-btn{padding:5px 12px;border-radius:100px;border:1px solid var(--border);background:var(--muted);color:var(--fg2);font-size:11px;font-family:inherit;cursor:pointer;transition:all .15s}
+.mode-btn.active{background:rgba(232,185,90,.08);color:var(--primary);border-color:rgba(232,185,90,.4)}
+#toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 16px;font-size:12px;z-index:1000;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+.week-ctrl{display:flex;align-items:center;gap:8px;background:var(--muted);border:1px solid var(--border);border-radius:7px;padding:5px 10px}
+.week-ctrl button{background:none;border:none;color:var(--fg2);display:flex;align-items:center;padding:0}
+.week-ctrl button:hover{color:var(--primary)}
+.week-label{font-size:11px;min-width:140px;text-align:center}
+.plan-tabs{display:flex;gap:4px;background:var(--muted);border:1px solid var(--border);border-radius:8px;padding:3px}
+.plan-tab{padding:4px 10px;border-radius:6px;border:none;background:none;color:var(--fg2);font-size:11px;font-family:inherit;cursor:pointer;transition:all .15s}
+.plan-tab.active{background:var(--card);color:var(--primary);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.view-tabs{display:flex;gap:4px;background:var(--muted);border:1px solid var(--border);border-radius:8px;padding:3px}
+.view-tab{padding:4px 12px;border-radius:6px;border:none;background:none;color:var(--fg2);font-size:11px;font-family:inherit;cursor:pointer;transition:all .15s}
+.view-tab.active{background:var(--card);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-row select{width:auto;min-width:110px}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--card);padding:0 20px}
+.tab-btn{padding:10px 16px;font-size:11.5px;border:none;background:none;color:var(--fg3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-family:inherit}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}.tab-btn:hover{color:var(--fg2)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.ec-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;background:rgba(176,123,240,.05);border:1px solid rgba(176,123,240,.2);cursor:pointer;margin-top:4px}
+.ec-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--purple)}
+.breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px}
+.breakdown-row:last-child{border:none}.breakdown-key{color:var(--fg2)}.breakdown-val{color:var(--fg);font-weight:500}
+.daily-big{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+.daily-date-num{font-family:'Syne',sans-serif;font-size:60px;font-weight:800;line-height:1;color:var(--primary)}
+.daily-date-rest{font-size:14px;color:var(--fg2);margin-top:2px}
+.range-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px}
+.collapsed .sb-link-label,.collapsed .sb-section-label,.collapsed .sb-class-name,.collapsed .sb-logo-text,.collapsed .sb-footer-text{display:none}
+.collapsed .sb-link{justify-content:center;padding:7px}.collapsed .sb-class-link{justify-content:center;padding:6px}
+.collapsed .btn-primary span,.collapsed .btn-secondary span,.collapsed .btn-settings span{display:none}
+.collapsed .btn-primary,.collapsed .btn-secondary,.collapsed .btn-settings{justify-content:center;padding:7px}
+.empty{text-align:center;padding:48px 20px;color:var(--fg3);font-size:12px}
+.empty .emoji{font-size:36px;display:block;margin-bottom:10px}
+.plan-legend{display:flex;gap:14px;font-size:10px;color:var(--fg3);margin-bottom:14px;flex-wrap:wrap}
+.plan-legend span{display:flex;align-items:center;gap:5px}
+.legend-line{width:16px;height:3px;border-radius:2px}
+.assign-name-link{color:inherit;text-decoration:none;cursor:pointer;border-bottom:1px dashed transparent;transition:border-color .15s,color .15s}
+.assign-name-link:hover{color:var(--primary);border-bottom-color:var(--primary)}
+.add-to-day-btn{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:4px;border:1px dashed var(--border);background:none;color:var(--fg3);font-size:9px;font-family:inherit;cursor:pointer;transition:all .15s;margin-top:2px}
+.add-to-day-btn:hover{border-color:var(--accent);color:var(--accent)}
+.modal-sm{max-width:400px}.modal-lg{max-width:600px}
+/* Settings */
+.settings-section{margin-bottom:18px}
+.settings-section-title{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.theme-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.theme-option{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px;border-radius:8px;border:1px solid transparent;transition:all .15s;min-width:56px}
+.theme-option:hover{background:var(--muted)}.theme-option.active{border-color:var(--primary);background:rgba(232,185,90,.08)}
+.theme-swatch{width:32px;height:32px;border-radius:50%}
+.theme-label{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2);text-align:center}
+.ct-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.ct-var{display:flex;flex-direction:column;gap:3px}
+.ct-var label{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3)}
+.ct-var input[type=color]{width:100%;height:26px;padding:2px 3px;border-radius:6px;cursor:pointer}
+.custom-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.custom-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 5px;border-radius:100px;border:1px solid var(--border);background:var(--muted);font-size:9.5px;color:var(--fg2);cursor:pointer;transition:all .15s}
+.custom-chip:hover{border-color:var(--red);color:var(--red)}
+.custom-chip .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:11px;color:var(--fg2)}
+/* Inline grade edit */
+.grade-inline-input{width:60px;padding:2px 5px;font-size:11px;border-radius:5px;text-align:center;display:inline-block}
+.grade-edit-wrap{display:inline-flex;align-items:center;gap:4px}
+/* Mobile hamburger */
+.mobile-menu-btn{display:none;position:fixed;top:12px;left:12px;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--fg);cursor:pointer}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40}
+/* Planner header controls */
+.planner-controls{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+/* ---- RESPONSIVE ---- */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%);transition:transform .25s,width .25s}
+  #sidebar.mobile-open{transform:translateX(0)}
+  #sidebar.collapsed{width:220px;transform:translateX(-100%)}
+  #sidebar.collapsed.mobile-open{transform:translateX(0)}
+  .sidebar-overlay.visible{display:block}
+  .mobile-menu-btn{display:flex;align-items:center;justify-content:center}
+  #main{margin-left:0!important}
+  .page-header{padding:12px 14px;padding-left:52px}
+  .page-body{padding:12px}
+  .week-grid{grid-template-columns:repeat(3,1fr)!important}
+  .month-grid{grid-template-columns:repeat(4,1fr)!important}
+  h1{font-size:17px}
+  .week-label{min-width:100px;font-size:10px}
+  .planner-controls{gap:4px}
+  .plan-tab{padding:3px 7px;font-size:10px}
+  .view-tab{padding:3px 9px;font-size:10px}
+  .btn{padding:5px 9px;font-size:10px}
+  .btn-sm{padding:2px 6px;font-size:9px}
+  .card{overflow-x:auto}
+  table{font-size:10.5px}
+  th{padding:7px 8px;font-size:7px}
+  td{padding:7px 8px}
+}
+@media(max-width:480px){
+  .week-grid{grid-template-columns:repeat(2,1fr)!important}
+  .month-grid{grid-template-columns:repeat(2,1fr)!important}
+  .form-grid-2{grid-template-columns:1fr}
+  .form-grid-3{grid-template-columns:1fr}
+  .grid-3-col{grid-template-columns:1fr}
+  .modal{padding:16px}
+  .planner-controls > .week-ctrl{order:10;width:100%}
+}
+@media(max-width:700px){.week-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+<button class="mobile-menu-btn" onclick="toggleMobileSidebar()">&#9776;</button>
+
+<aside id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-text"><div class="name">Agenda</div><div class="sub">Assignment Planner</div></div>
+    <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar">&#9776;</button>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section-label">Overview</div>
+    <button class="sb-link active" onclick="nav('dashboard',this)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="sb-link-label">Dashboard</span></button>
+    <div class="sb-section-label">Planning</div>
+    <button class="sb-link" onclick="nav('planner',this)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="sb-link-label">Planner</span></button>
+    <button class="sb-link" onclick="nav('assignments',this)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg><span class="sb-link-label">Assignments</span></button>
+    <div class="sb-section-label">Classes</div>
+    <button class="sb-link" onclick="nav('classes',this)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg><span class="sb-link-label">All Classes</span></button>
+    <div id="class-links"></div>
+  </nav>
+  <div class="sb-footer">
+    <button class="btn-settings" onclick="openSettings()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
+    <button class="btn-primary" onclick="exportCSV()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Save to CSV</span></button>
+    <button class="btn-secondary" onclick="document.getElementById('csv-input').click()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Load from CSV</span></button>
+    <input id="csv-input" type="file" accept=".csv" style="display:none" onchange="importCSV(event)" />
+  </div>
+</aside>
+
+<main id="main">
+  <div id="page-dashboard" class="page active">
+    <div class="page-header"><h1>Your <em>Dashboard</em></h1><button class="btn btn-main" onclick="openAssignModal()">+ Add Assignment</button></div>
+    <div class="page-body">
+      <div class="grid grid-4" id="stat-cards" style="margin-bottom:24px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="syne" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)">Classes &amp; Grades</div><button class="btn btn-ghost btn-sm" onclick="nav('classes',null)">Manage →</button></div>
+      <div class="grid grid-4" id="dash-class-cards" style="margin-bottom:24px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="syne" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)">Upcoming Assignments</div><button class="btn btn-ghost btn-sm" onclick="nav('assignments',null)">View All →</button></div>
+      <div class="card"><table id="dash-table"><thead><tr><th class="sortable" data-table="dash" data-col="name" onclick="sortTable('dash','name')">Assignment</th><th class="sortable" data-table="dash" data-col="class" onclick="sortTable('dash','class')">Class</th><th class="sortable" data-table="dash" data-col="type" onclick="sortTable('dash','type')">Type</th><th class="sortable" data-table="dash" data-col="due" onclick="sortTable('dash','due')">Due</th><th class="sortable" data-table="dash" data-col="planned_date" onclick="sortTable('dash','planned_date')">Plan Date</th><th class="sortable" data-table="dash" data-col="status" onclick="sortTable('dash','status')">Status</th><th>Grade</th></tr></thead><tbody id="dash-assign-rows"></tbody></table></div>
+    </div>
+  </div>
+
+  <div id="page-planner" class="page">
+    <div class="page-header">
+      <h1>My <em>Planner</em></h1>
+      <div class="planner-controls">
+        <div id="myplan-csv-btns" style="display:none;gap:5px"><button class="btn btn-ghost btn-sm" onclick="exportMyPlanCSV()">⬇ Export Plan</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById('myplan-csv-input').click()">⬆ Import Plan</button><input id="myplan-csv-input" type="file" accept=".csv" style="display:none" onchange="importMyPlanCSV(event)" /></div>
+        <div class="view-tabs"><button class="view-tab" id="vtab-due" onclick="setPlanViewMode('due')">By Due Date</button><button class="view-tab active" id="vtab-myplan" onclick="setPlanViewMode('myplan')">My Plan</button></div>
+        <div class="plan-tabs"><button class="plan-tab" id="ptab-day" onclick="setPlanMode('day')">Day</button><button class="plan-tab active" id="ptab-week" onclick="setPlanMode('week')">Week</button><button class="plan-tab" id="ptab-month" onclick="setPlanMode('month')">Month</button><button class="plan-tab" id="ptab-range" onclick="setPlanMode('range')">Range</button></div>
+        <div class="week-ctrl" id="plan-nav"><button onclick="planNav(-1)">&#8249;</button><span class="week-label" id="plan-label"></span><button onclick="planNav(1)">&#8250;</button></div>
+        <button class="btn btn-main" id="planner-add-btn" onclick="openAssignModal()">+ Add</button>
+      </div>
+    </div>
+    <div class="page-body" id="planner-body"></div>
+  </div>
+
+  <div id="page-assignments" class="page">
+    <div class="page-header"><h1>All <em>Assignments</em></h1><div class="filter-row"><select id="filter-class" onchange="renderAssignments()"><option value="">All Classes</option></select><select id="filter-status" onchange="renderAssignments()"><option value="">All Status</option><option>Pending</option><option>Planning</option><option>Done</option><option>Overdue</option></select><button class="btn btn-main" onclick="openAssignModal()">+ Add</button></div></div>
+    <div class="page-body"><div class="card"><table id="all-table"><thead><tr><th class="sortable" data-table="all" data-col="name" onclick="sortTable('all','name')">Assignment</th><th class="sortable" data-table="all" data-col="class" onclick="sortTable('all','class')">Class</th><th class="sortable" data-table="all" data-col="type" onclick="sortTable('all','type')">Type</th><th class="sortable" data-table="all" data-col="due" onclick="sortTable('all','due')">Due</th><th class="sortable" data-table="all" data-col="planned_date" onclick="sortTable('all','planned_date')">Plan Date</th><th class="sortable" data-table="all" data-col="status" onclick="sortTable('all','status')">Status</th><th>Grade</th><th>Actions</th></tr></thead><tbody id="all-assign-rows"></tbody></table></div></div>
+  </div>
+
+  <div id="page-classes" class="page">
+    <div class="page-header"><h1>My <em>Classes</em></h1><button class="btn btn-main" onclick="openClassModal()">+ Add Class</button></div>
+    <div class="page-body"><div class="grid grid-3" id="class-cards-grid"></div></div>
+  </div>
+
+  <div id="page-detail" class="page">
+    <div class="page-header" id="detail-header"></div>
+    <div class="tabs" id="detail-tabs"></div>
+    <div class="page-body" id="detail-body"></div>
+  </div>
+</main>
+
+<!-- ASSIGN MODAL — cleaner, no priority -->
+<div class="modal-overlay" id="assign-modal">
+  <div class="modal">
+    <div class="modal-title" id="assign-modal-title">Add Assignment</div>
+    <div class="form-grid">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label>Assignment Name</label><input id="a-name" placeholder="e.g. Chapter 5 Essay" /></div>
+        <div class="form-group"><label>Class</label><select id="a-class"></select></div>
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label>Type</label><select id="a-type"><option>Homework</option><option>Essay</option><option>Quiz</option><option>Exam</option><option>Project</option><option>Lab</option><option>Reading</option><option>Other</option></select></div>
+        <div class="form-group"><label>Status</label><select id="a-status"><option selected>Pending</option><option>Planning</option><option>Done</option><option>Overdue</option></select></div>
+      </div>
+      <div>
+        <div class="section-label-sm">📅 Due Date</div>
+        <div class="form-grid grid-3-col">
+          <div class="form-group"><label>Month</label><select id="a-due-month"><option value="">—</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
+          <div class="form-group"><label>Day</label><select id="a-due-day"><option value="">—</option></select></div>
+          <div class="form-group"><label>Year</label><select id="a-due-year"><option value="">—</option></select></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-label-sm">🗓 Plan To Work On</div>
+        <div class="form-grid grid-3-col">
+          <div class="form-group"><label>Month</label><select id="a-plan-month"><option value="">—</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
+          <div class="form-group"><label>Day</label><select id="a-plan-day"><option value="">—</option></select></div>
+          <div class="form-group"><label>Year</label><select id="a-plan-year"><option value="">—</option></select></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-label-sm">📊 Grade</div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><label>Points Earned</label><input type="number" id="a-points-earned" placeholder="e.g. 18" min="0" step="0.5" /></div>
+          <div class="form-group"><label>Total Points (Weight)</label><input type="number" id="a-weight" placeholder="e.g. 20" min="0" step="0.5" /></div>
+        </div>
+        <div id="grade-preview" style="font-size:11px;color:var(--fg2);margin-top:6px;min-height:18px"></div>
+      </div>
+      <div class="ec-row" onclick="toggleEC()"><input type="checkbox" id="a-ec" /><span style="font-size:11px;color:var(--fg2)">✦ Extra Credit</span></div>
+      <div class="form-group"><label>Notes</label><textarea id="a-notes" rows="2" placeholder="Any additional notes..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeAssignModal()">Cancel</button><button class="btn btn-main" onclick="saveAssignment()">Save Assignment</button></div>
+  </div>
+</div>
+
+<!-- CLASS MODAL -->
+<div class="modal-overlay" id="class-modal">
+  <div class="modal">
+    <div class="modal-title" id="class-modal-title">Add Class</div>
+    <div class="form-grid">
+      <div class="form-grid form-grid-2"><div class="form-group"><label>Class Name</label><input id="c-name" placeholder="e.g. AP Biology" /></div><div class="form-group"><label>Teacher</label><input id="c-teacher" placeholder="Mr. / Ms. ..." /></div></div>
+      <div class="form-grid form-grid-2"><div class="form-group"><label>Credits</label><input type="number" id="c-credits" placeholder="e.g. 3" /></div><div class="form-group"><label>Color</label><div class="color-picker" id="color-picker"></div></div></div>
+      <div><label>Schedule</label><div class="mode-toggle"><button class="mode-btn active" id="mode-inperson" onclick="setMode('inperson')">🏫 In-Person</button><button class="mode-btn" id="mode-online" onclick="setMode('online')">🌐 Online</button></div>
+        <div id="schedule-inperson"><div class="form-grid form-grid-2" style="margin-bottom:8px"><div class="form-group"><label>Days</label><input id="c-days" placeholder="e.g. MWF" /></div><div class="form-group"><label>Start Time</label><input type="time" id="c-start" /></div></div><div class="form-grid form-grid-2"><div class="form-group"><label>End Time</label><input type="time" id="c-end" /></div><div class="form-group"><label>Room</label><input id="c-room" placeholder="e.g. Room 204" /></div></div></div>
+        <div id="schedule-online" style="display:none"><div class="form-group"><label>Platform / Link</label><input id="c-platform" placeholder="e.g. Zoom, Canvas" /></div></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeClassModal()">Cancel</button><button class="btn btn-main" onclick="saveClass()">Save Class</button></div>
+  </div>
+</div>
+
+<!-- MY PLAN MODAL -->
+<div class="modal-overlay" id="myplan-modal">
+  <div class="modal modal-sm">
+    <div class="modal-title">Add to <em id="myplan-modal-date-label"></em></div>
+    <div class="form-group" style="margin-bottom:14px"><label>Select Assignment</label><select id="myplan-select" style="width:100%"></select></div>
+    <div id="myplan-modal-info" style="font-size:11px;color:var(--fg2);margin-bottom:10px;min-height:20px"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeMyPlanModal()">Cancel</button><button class="btn btn-main" onclick="saveMyPlanEntry()">Add to Plan</button></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal modal-lg">
+    <div class="modal-title">⚙ Settings</div>
+    <div class="settings-section">
+      <div class="settings-section-title">Theme</div>
+      <div class="theme-grid" id="settings-theme-grid"></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Custom Themes</div>
+      <div class="custom-chips" id="custom-theme-list"></div>
+      <details><summary style="font-size:11px;color:var(--fg2);cursor:pointer;margin-bottom:6px">＋ Create New Custom Theme</summary>
+        <div style="margin-top:8px"><div class="form-group" style="margin-bottom:8px"><label>Theme Name</label><input id="ct-name" placeholder="e.g. Midnight Blue" /></div>
+        <div class="ct-grid">
+          <div class="ct-var"><label>Background</label><input type="color" id="ct-bg" value="#1b1f2e" /></div>
+          <div class="ct-var"><label>Card</label><input type="color" id="ct-card" value="#13161f" /></div>
+          <div class="ct-var"><label>Border</label><input type="color" id="ct-border" value="#272c3d" /></div>
+          <div class="ct-var"><label>Muted</label><input type="color" id="ct-muted" value="#3a4055" /></div>
+          <div class="ct-var"><label>Foreground</label><input type="color" id="ct-fg" value="#e8eaf2" /></div>
+          <div class="ct-var"><label>Fg Muted</label><input type="color" id="ct-fg2" value="#8a90a8" /></div>
+          <div class="ct-var"><label>Primary</label><input type="color" id="ct-primary" value="#e8b95a" /></div>
+          <div class="ct-var"><label>Accent</label><input type="color" id="ct-accent" value="#5b8af0" /></div>
+          <div class="ct-var"><label>Green</label><input type="color" id="ct-green" value="#5dd9a0" /></div>
+          <div class="ct-var"><label>Red</label><input type="color" id="ct-red" value="#e85b5b" /></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px"><button class="btn btn-main btn-sm" onclick="saveCustomTheme()">Save Theme</button><button class="btn btn-ghost btn-sm" onclick="previewCustomTheme()">Preview</button></div>
+        </div>
+      </details>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Theme File (Import / Export)</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="exportThemes()">⬇ Export Themes</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('theme-file-input').click()">⬆ Import Themes</button>
+        <input id="theme-file-input" type="file" accept=".json" style="display:none" onchange="importThemes(event)" />
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Default Export Folders</div>
+      <p style="font-size:10px;color:var(--fg3);margin-bottom:10px">Set default filenames/paths used when exporting. The browser will suggest these names when saving.</p>
+      <div class="settings-row">
+        <span style="white-space:nowrap">Assignments export filename</span>
+        <input id="setting-agenda-filename" placeholder="Agenda.csv" style="width:180px;font-size:11px;padding:4px 8px" onchange="saveSettings()" />
+      </div>
+      <div class="settings-row">
+        <span style="white-space:nowrap">My Plan export filename</span>
+        <input id="setting-myplan-filename" placeholder="MyPlan.csv" style="width:180px;font-size:11px;padding:4px 8px" onchange="saveSettings()" />
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Autoload on Startup</div>
+      <p style="font-size:10px;color:var(--fg3);margin-bottom:10px">Place <code style="background:var(--muted);padding:1px 4px;border-radius:3px">Agenda.csv</code> and <code style="background:var(--muted);padding:1px 4px;border-radius:3px">MyPlan.csv</code> next to this file on a web server. Autoload tries to fetch them on startup.</p>
+      <div class="settings-row"><span>Autoload Agenda.csv on startup</span><input type="checkbox" checked id="setting-autoload-agenda" style="width:auto" onchange="saveSettings()" /></div>
+      <div class="settings-row"><span>Autoload MyPlan.csv on startup</span><input type="checkbox" checked id="setting-autoload-myplan" style="width:auto" onchange="saveSettings()" /></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeSettings()">Close</button></div>
+  </div>
+</div>
+
+<!-- INLINE GRADE MODAL -->
+<div class="modal-overlay" id="grade-modal">
+  <div class="modal modal-sm">
+    <div class="modal-title">Enter Grade</div>
+    <div id="grade-modal-name" style="font-size:12px;color:var(--fg2);margin-bottom:14px"></div>
+    <div class="form-grid form-grid-2">
+      <div class="form-group"><label>Points Earned</label><input type="number" id="gm-earned" placeholder="e.g. 18" min="0" step="0.5" oninput="updateGradeModalPreview()" /></div>
+      <div class="form-group"><label>Total Points</label><input type="number" id="gm-weight" placeholder="e.g. 20" min="0" step="0.5" oninput="updateGradeModalPreview()" /></div>
+    </div>
+    <div id="gm-preview" style="font-size:11px;color:var(--fg2);margin-top:8px;min-height:18px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeGradeModal()">Cancel</button>
+      <button class="btn btn-ghost btn-sm btn-danger" onclick="clearGrade()" style="margin-right:auto">Clear Grade</button>
+      <button class="btn btn-main" onclick="saveGradeModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script>
+// ---- THEMES ----
+const BUILTIN_THEMES=[{id:'dark',label:'Dark',bg:'#1b1f2e',dot:'#e8b95a'},{id:'light',label:'Light',bg:'#f0f2f7',dot:'#c49020'},{id:'ocean',label:'Ocean',bg:'#081828',dot:'#38b2f0'},{id:'forest',label:'Forest',bg:'#0c1a0e',dot:'#50d070'},{id:'rose',label:'Rose',bg:'#1e0e14',dot:'#f070a0'}];
+let customThemes=[];try{customThemes=JSON.parse(localStorage.getItem('agenda_custom_themes')||'[]');}catch(e){customThemes=[];}
+let currentTheme=localStorage.getItem('agenda_theme')||'dark';
+function getAllThemes(){return[...BUILTIN_THEMES,...customThemes];}
+function applyTheme(id){
+  currentTheme=id;document.documentElement.setAttribute('data-theme',id);localStorage.setItem('agenda_theme',id);
+  const custom=customThemes.find(t=>t.id===id);
+  if(custom){applyCustomVars(custom.vars);}else{document.documentElement.removeAttribute('style');}
+  document.querySelectorAll('.theme-option').forEach(el=>el.classList.toggle('active',el.dataset.theme===id));
+}
+function applyCustomVars(v){
+  const r=document.documentElement;
+  r.style.setProperty('--bg',v.bg);r.style.setProperty('--card',v.card);r.style.setProperty('--border',v.border);
+  r.style.setProperty('--muted',v.muted);r.style.setProperty('--fg',v.fg);r.style.setProperty('--fg2',v.fg2);
+  r.style.setProperty('--fg3',dimHex(v.fg2,-30));r.style.setProperty('--primary',v.primary);
+  r.style.setProperty('--primary-fg',v.bg);r.style.setProperty('--accent',v.accent);
+  r.style.setProperty('--green',v.green);r.style.setProperty('--red',v.red);
+  r.style.setProperty('--purple','#b07bf0');r.style.setProperty('--orange','#e88a40');r.style.setProperty('--blue',v.accent);
+}
+function dimHex(hex,amt){try{let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);r=Math.max(0,Math.min(255,r+amt));g=Math.max(0,Math.min(255,g+amt));b=Math.max(0,Math.min(255,b+amt));return'#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');}catch(e){return hex;}}
+
+// ---- SETTINGS ----
+let appSettings={};try{appSettings=JSON.parse(localStorage.getItem('agenda_settings')||'{}');}catch(e){}
+function saveSettings(){
+  appSettings.autoloadAgenda=document.getElementById('setting-autoload-agenda')?.checked||false;
+  appSettings.autoloadMyplan=document.getElementById('setting-autoload-myplan')?.checked||false;
+  appSettings.agendaFilename=(document.getElementById('setting-agenda-filename')?.value||'').trim()||'Agenda.csv';
+  appSettings.myplanFilename=(document.getElementById('setting-myplan-filename')?.value||'').trim()||'MyPlan.csv';
+  localStorage.setItem('agenda_settings',JSON.stringify(appSettings));
+}
+function openSettings(){
+  buildSettingsThemeGrid();buildCustomThemeList();
+  document.getElementById('setting-autoload-agenda').checked=!!appSettings.autoloadAgenda;
+  document.getElementById('setting-autoload-myplan').checked=!!appSettings.autoloadMyplan;
+  document.getElementById('setting-agenda-filename').value=appSettings.agendaFilename||'Agenda.csv';
+  document.getElementById('setting-myplan-filename').value=appSettings.myplanFilename||'MyPlan.csv';
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettings(){document.getElementById('settings-modal').classList.remove('open');}
+function buildSettingsThemeGrid(){document.getElementById('settings-theme-grid').innerHTML=getAllThemes().map(t=>`<div class="theme-option ${t.id===currentTheme?'active':''}" data-theme="${t.id}" onclick="applyTheme('${t.id}')"><div class="theme-swatch" style="background:${t.dot||t.bg};outline:3px solid ${t.bg}"></div><div class="theme-label">${t.label}</div></div>`).join('');}
+function buildCustomThemeList(){const el=document.getElementById('custom-theme-list');if(!customThemes.length){el.innerHTML='<span style="font-size:11px;color:var(--fg3)">No custom themes yet.</span>';return;}el.innerHTML=customThemes.map(t=>`<div class="custom-chip" title="Click to delete" onclick="deleteCustomTheme('${t.id}')"><div class="dot" style="background:${t.vars.primary}"></div>${t.label} ✕</div>`).join('');}
+function ctVars(){return{bg:document.getElementById('ct-bg').value,card:document.getElementById('ct-card').value,border:document.getElementById('ct-border').value,muted:document.getElementById('ct-muted').value,fg:document.getElementById('ct-fg').value,fg2:document.getElementById('ct-fg2').value,primary:document.getElementById('ct-primary').value,accent:document.getElementById('ct-accent').value,green:document.getElementById('ct-green').value,red:document.getElementById('ct-red').value};}
+function saveCustomTheme(){const name=document.getElementById('ct-name').value.trim();if(!name){toast('Enter a theme name');return;}const vars=ctVars();const t={id:'custom_'+Date.now().toString(36),label:name,bg:vars.bg,dot:vars.primary,vars};customThemes.push(t);localStorage.setItem('agenda_custom_themes',JSON.stringify(customThemes));applyTheme(t.id);buildSettingsThemeGrid();buildCustomThemeList();document.getElementById('ct-name').value='';toast('Custom theme saved: '+name);}
+function previewCustomTheme(){applyCustomVars(ctVars());toast('Previewing — save to keep');}
+function deleteCustomTheme(id){if(!confirm('Delete this custom theme?'))return;customThemes=customThemes.filter(t=>t.id!==id);localStorage.setItem('agenda_custom_themes',JSON.stringify(customThemes));if(currentTheme===id)applyTheme('dark');buildSettingsThemeGrid();buildCustomThemeList();toast('Theme deleted');}
+function exportThemes(){const blob=new Blob([JSON.stringify({customThemes,activeTheme:currentTheme},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='agenda_themes.json';a.click();toast('Themes exported');}
+function importThemes(e){const file=e.target.files?.[0];if(!file)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.customThemes&&Array.isArray(d.customThemes)){customThemes=d.customThemes;localStorage.setItem('agenda_custom_themes',JSON.stringify(customThemes));if(d.activeTheme)applyTheme(d.activeTheme);buildSettingsThemeGrid();buildCustomThemeList();toast('✓ Imported '+customThemes.length+' theme(s)');}else toast('Invalid theme file');}catch(err){toast('Import failed: '+err.message);}};r.readAsText(file);e.target.value='';}
+
+// ---- DATA ----
+const COLORS=['#5b8af0','#f0c060','#7be0a8','#f07070','#c07bf0','#f0a060','#60d0f0','#f08060','#a0c0f0','#e0a0f0'];
+let classes=[],assignments=[],myPlan={};
+let editingAssignId=null,editingClassId=null,planOffset=0,planMode='week',planViewMode='myplan',rangeStart='',rangeEnd='',currentDetailId=null,detailTab='grades',scheduleMode='inperson',selectedColor=COLORS[0],myPlanModalDate=null;
+let sortState={dash:{col:null,dir:'asc'},all:{col:null,dir:'asc'}};
+let gradeModalAssignId=null;
+function load(){try{classes=JSON.parse(localStorage.getItem('agenda_classes')||'[]');}catch(e){classes=[];}try{assignments=JSON.parse(localStorage.getItem('agenda_assignments')||'[]');}catch(e){assignments=[];}try{myPlan=JSON.parse(localStorage.getItem('agenda_myplan')||'{}');}catch(e){myPlan={};}}
+function save(){localStorage.setItem('agenda_classes',JSON.stringify(classes));localStorage.setItem('agenda_assignments',JSON.stringify(assignments));localStorage.setItem('agenda_myplan',JSON.stringify(myPlan));}
+function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+
+// ---- DATE ----
+function buildDate(m,d,y){if(!m||!d||!y)return'';return`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function parseDate(s){if(!s)return{m:'',d:'',y:''};const p=s.split('-');if(p.length!==3)return{m:'',d:'',y:''};return{y:parseInt(p[0]),m:parseInt(p[1]),d:parseInt(p[2])};}
+function populateDays(id){const s=document.getElementById(id),c=s.value;s.innerHTML='<option value="">—</option>';for(let i=1;i<=31;i++)s.innerHTML+=`<option value="${i}">${i}</option>`;if(c)s.value=c;}
+function populateYears(id){const s=document.getElementById(id),c=s.value,yr=new Date().getFullYear();s.innerHTML='<option value="">—</option>';for(let y=yr-1;y<=yr+5;y++)s.innerHTML+=`<option value="${y}">${y}</option>`;if(c)s.value=c;}
+
+// ---- CSV PARSE ----
+function csvLine(line){const result=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(c===','&&!inQ){result.push(cur.trim());cur='';}else cur+=c;}result.push(cur.trim());return result;}
+
+// ---- UTILS ----
+function fmtDate(s){if(!s)return'—';const p=parseDate(s);if(!p.y)return'—';return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][p.m-1]+' '+p.d+', '+p.y;}
+function fmtTime(t){if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);return`${hr%12||12}:${m} ${hr>=12?'PM':'AM'}`;}
+function gradeToLetter(p){if(p===''||p==null||isNaN(p))return'—';const n=parseFloat(p);if(n>=97)return'A+';if(n>=93)return'A';if(n>=90)return'A−';if(n>=87)return'B+';if(n>=83)return'B';if(n>=80)return'B−';if(n>=77)return'C+';if(n>=73)return'C';if(n>=70)return'C−';if(n>=60)return'D';return'F';}
+function gradeColor(p){if(p==null||isNaN(p))return'var(--fg2)';const n=parseFloat(p);if(n>=90)return'var(--green)';if(n>=80)return'var(--accent)';if(n>=70)return'var(--primary)';if(n>=60)return'var(--orange)';return'var(--red)';}
+function gradePercent(a){if(a.points_earned==null||a.weight==null||parseFloat(a.weight)===0)return null;return parseFloat(a.points_earned)/parseFloat(a.weight)*100;}
+function classAvg(cid){const reg=assignments.filter(a=>a.class_id===cid&&!a.is_extra_credit&&a.points_earned!=null&&a.weight!=null&&parseFloat(a.weight)>0);const ec=assignments.filter(a=>a.class_id===cid&&a.is_extra_credit&&a.points_earned!=null&&a.weight!=null&&parseFloat(a.weight)>0);if(!reg.length)return null;const te=reg.reduce((s,a)=>s+parseFloat(a.points_earned),0),tp=reg.reduce((s,a)=>s+parseFloat(a.weight),0),ee=ec.reduce((s,a)=>s+parseFloat(a.points_earned),0);return Math.min((te+ee)/tp*100,105).toFixed(1);}
+function getWeekStartFromOffset(off){const d=new Date(),day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);d.setDate(diff+off*7);d.setHours(0,0,0,0);return d;}
+function statusBadge(s){const m={Done:'badge-green',Pending:'badge-yellow',Overdue:'badge-red',Planning:'badge-planning'};return`<span class="badge ${m[s]||'badge-gray'}">${s||'Pending'}</span>`;}
+function gradeTd(a){
+  const pct=gradePercent(a),ec=a.is_extra_credit?`<span class="badge badge-purple" style="margin-left:4px;font-size:8px">EC</span>`:'';
+  const editBtn=`<button class="btn btn-ghost btn-sm" style="padding:1px 5px;font-size:9px;margin-left:4px" onclick="openGradeModal('${a.id}');event.stopPropagation()">✏</button>`;
+  if(pct===null){
+    if(a.points_earned!=null)return`<span style="color:var(--fg2)">${a.points_earned} pts${a.weight?'/'+a.weight:''}</span>${ec}${editBtn}`;
+    return`<span style="color:var(--fg3);cursor:pointer" onclick="openGradeModal('${a.id}');event.stopPropagation()">— (add)</span>`;
+  }
+  return`<span style="color:${gradeColor(pct)}">${a.points_earned}/${a.weight} pts (${pct.toFixed(1)}% ${gradeToLetter(pct)})</span>${ec}${editBtn}`;
+}
+function getClass(id){return classes.find(c=>c.id===id);}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ---- INLINE GRADE MODAL ----
+function openGradeModal(aid){
+  const a=assignments.find(x=>x.id===aid);if(!a)return;
+  gradeModalAssignId=aid;
+  document.getElementById('grade-modal-name').textContent=a.name+(getClass(a.class_id)?' · '+getClass(a.class_id).name:'');
+  document.getElementById('gm-earned').value=a.points_earned!=null?a.points_earned:'';
+  document.getElementById('gm-weight').value=a.weight!=null?a.weight:'';
+  updateGradeModalPreview();
+  document.getElementById('grade-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('gm-earned').focus(),100);
+}
+function closeGradeModal(){document.getElementById('grade-modal').classList.remove('open');gradeModalAssignId=null;}
+function updateGradeModalPreview(){
+  const pe=parseFloat(document.getElementById('gm-earned').value),wt=parseFloat(document.getElementById('gm-weight').value),el=document.getElementById('gm-preview');
+  if(!isNaN(pe)&&!isNaN(wt)&&wt>0){const pct=pe/wt*100;el.innerHTML=`<span style="color:${gradeColor(pct)}">${pe} / ${wt} pts = ${pct.toFixed(1)}% (${gradeToLetter(pct)})</span>`;}
+  else el.innerHTML='';
+}
+function saveGradeModal(){
+  const a=assignments.find(x=>x.id===gradeModalAssignId);if(!a)return;
+  const pe=document.getElementById('gm-earned').value,wt=document.getElementById('gm-weight').value;
+  a.points_earned=pe!==''?parseFloat(pe):null;
+  a.weight=wt!==''?parseFloat(wt):null;
+  save();toast('Grade saved');closeGradeModal();refreshCurrentPage();
+}
+function clearGrade(){
+  const a=assignments.find(x=>x.id===gradeModalAssignId);if(!a)return;
+  a.points_earned=null;a.weight=null;
+  save();toast('Grade cleared');closeGradeModal();refreshCurrentPage();
+}
+
+// ---- SORT ----
+function getSortValue(a,col){const cls=getClass(a.class_id);switch(col){case'name':return(a.name||'').toLowerCase();case'class':return(cls?cls.name:'').toLowerCase();case'type':return(a.type||'').toLowerCase();case'due':return a.due||'9999-99-99';case'planned_date':return a.planned_date||'9999-99-99';case'status':return(a.status||'').toLowerCase();default:return'';}}
+function sortTable(key,col){const st=sortState[key];if(st.col===col){st.dir=st.dir==='asc'?'desc':'asc';}else{st.col=col;st.dir='asc';}const tEl=document.getElementById(key==='all'?'all-table':'dash-table');if(tEl)tEl.querySelectorAll('th.sortable').forEach(th=>{th.classList.remove('sort-asc','sort-desc');if(th.dataset.col===col)th.classList.add(st.dir==='asc'?'sort-asc':'sort-desc');});if(key==='dash')renderDashboard();if(key==='all')renderAssignments();}
+function applySortToList(list,key){const st=sortState[key];if(!st.col)return list;return[...list].sort((a,b)=>{const av=getSortValue(a,st.col),bv=getSortValue(b,st.col);let c=0;if(typeof av==='number'&&typeof bv==='number')c=av-bv;else c=av<bv?-1:av>bv?1:0;return st.dir==='asc'?c:-c;});}
+
+// ---- NAV ----
+function nav(page,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+page).classList.add('active');document.querySelectorAll('.sb-link').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');if(page==='dashboard')renderDashboard();if(page==='planner'){planOffset=0;renderPlanner();}if(page==='assignments')renderAssignments();if(page==='classes')renderClasses();closeMobileSidebar();}
+function navDetail(cid){currentDetailId=cid;detailTab='grades';document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-detail').classList.add('active');document.querySelectorAll('.sb-link').forEach(b=>b.classList.remove('active'));renderDetail();closeMobileSidebar();}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+function toggleMobileSidebar(){const sb=document.getElementById('sidebar'),ov=document.getElementById('sidebar-overlay');sb.classList.toggle('mobile-open');ov.classList.toggle('visible');}
+function closeMobileSidebar(){document.getElementById('sidebar').classList.remove('mobile-open');document.getElementById('sidebar-overlay').classList.remove('visible');}
+
+// ---- DASHBOARD ----
+function renderDashboard(){
+  const total=assignments.length,done=assignments.filter(a=>a.status==='Done').length,pending=assignments.filter(a=>a.status==='Pending').length;
+  const reg=assignments.filter(a=>!a.is_extra_credit&&a.points_earned!=null&&a.weight!=null&&parseFloat(a.weight)>0);
+  const te=reg.reduce((s,a)=>s+parseFloat(a.points_earned),0),tp=reg.reduce((s,a)=>s+parseFloat(a.weight),0);
+  const avg=reg.length&&tp>0?(te/tp*100).toFixed(1):null,ec=assignments.filter(a=>a.is_extra_credit).length,pct=total?Math.round(done/total*100):0;
+  document.getElementById('stat-cards').innerHTML=`<div class="stat-card"><div class="corner" style="background:var(--primary)"></div><div class="stat-label">Total Assignments</div><div class="stat-value syne" style="color:var(--primary)">${total}</div><div class="stat-sub">${classes.length} class${classes.length!==1?'es':''}</div></div><div class="stat-card"><div class="corner" style="background:var(--green)"></div><div class="stat-label">Completed</div><div class="stat-value syne" style="color:var(--green)">${done}</div><div class="stat-sub">${pct}% done</div></div><div class="stat-card"><div class="corner" style="background:var(--accent)"></div><div class="stat-label">Pending</div><div class="stat-value syne" style="color:var(--accent)">${pending}</div><div class="stat-sub">remaining</div></div><div class="stat-card"><div class="corner" style="background:var(--purple)"></div><div class="stat-label">Overall Average</div><div class="stat-value syne" style="color:var(--purple)">${avg!==null?avg+'%':'—'}</div><div class="stat-sub">${avg!==null?gradeToLetter(avg)+(ec?' · '+ec+' EC':' average'):'no grades yet'}</div></div>`;
+  document.getElementById('dash-class-cards').innerHTML=classes.length?classes.map(c=>classCardHTML(c,true)).join(''):`<div class="empty" style="grid-column:1/-1"><span class="emoji">🏫</span>No classes yet.</div>`;
+  let up=assignments.filter(a=>a.status!=='Done').sort((a,b)=>new Date(a.due)-new Date(b.due)).slice(0,8);
+  up=applySortToList(up,'dash');
+  document.getElementById('dash-assign-rows').innerHTML=up.length?up.map(a=>assignRowHTML(a,false)).join(''):`<tr><td colspan="7"><div class="empty"><span class="emoji">🎉</span>Nothing pending!</div></td></tr>`;
+  restoreSortHeaders('dash');
+}
+function restoreSortHeaders(key){const st=sortState[key];if(!st.col)return;const tEl=document.getElementById(key==='all'?'all-table':'dash-table');if(!tEl)return;tEl.querySelectorAll('th.sortable').forEach(th=>{th.classList.remove('sort-asc','sort-desc');if(th.dataset.col===st.col)th.classList.add(st.dir==='asc'?'sort-asc':'sort-desc');});}
+
+// ---- CLASSES ----
+function classCardHTML(cls,clickable){const avg=classAvg(cls.id),pct=avg!==null?parseFloat(avg):null,count=assignments.filter(a=>a.class_id===cls.id).length,doneC=assignments.filter(a=>a.class_id===cls.id&&a.status==='Done').length,ecC=assignments.filter(a=>a.class_id===cls.id&&a.is_extra_credit).length,sched=cls.schedule_mode==='online'?'🌐 Online':(cls.days?(cls.days+(cls.time_start?' · '+fmtTime(cls.time_start):'')):'');return`<div class="class-card" ${clickable?`onclick="navDetail('${cls.id}')" style="cursor:pointer"`:''}><div class="top-bar" style="background:${cls.color}"></div><div class="class-name" style="color:${cls.color}">${cls.name}</div><div class="class-sub">${cls.teacher||''}${sched?' · '+sched:''}</div><div class="grade-big serif" style="color:${gradeColor(pct)}">${avg!==null?gradeToLetter(avg):'—'}</div><div style="font-size:12px;color:var(--fg2);margin-top:2px">${avg!==null?avg+'%':'No grades'}</div>${avg!==null?`<div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:${gradeColor(pct)}"></div></div>`:''}<div class="class-meta"><span>Assignments <em>${count}</em></span><span>Done <em>${doneC}</em></span>${ecC?`<span>EC <em style="color:var(--purple)">${ecC}</em></span>`:''}${cls.credits?`<span>Credits <em>${cls.credits}</em></span>`:''}</div></div>`;}
+function renderClasses(){if(!classes.length){document.getElementById('class-cards-grid').innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="emoji">🏫</span>No classes yet. Click "+ Add Class" to start.</div>`;return;}document.getElementById('class-cards-grid').innerHTML=classes.map(cls=>{const avg=classAvg(cls.id),pct=avg!==null?parseFloat(avg):null,count=assignments.filter(a=>a.class_id===cls.id).length,sched=cls.schedule_mode==='online'?'🌐 Online':(cls.days?(cls.days+(cls.time_start?' · '+fmtTime(cls.time_start):'')):'');return`<div class="class-card"><div class="top-bar" style="background:${cls.color}"></div><div class="class-name" style="color:${cls.color}">${cls.name}</div><div class="class-sub">${cls.teacher||'No teacher'}${sched?' · '+sched:''}</div><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px"><div class="grade-big serif" style="color:${gradeColor(pct)}">${avg!==null?gradeToLetter(avg):'—'}</div><div style="font-size:12px;color:var(--fg2)">${avg!==null?avg+'%':'No grades'}</div></div><div class="class-meta" style="margin-bottom:12px"><span>Assignments <em>${count}</em></span>${cls.credits?`<span>Credits <em>${cls.credits}</em></span>`:''}</div><div style="display:flex;gap:5px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="navDetail('${cls.id}')">View</button><button class="btn btn-ghost btn-sm" onclick="openClassModal('${cls.id}')">Edit</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteClass('${cls.id}')">Remove</button></div></div>`;}).join('');}
+function updateClassLinks(){document.getElementById('class-links').innerHTML=classes.map(c=>`<button class="sb-class-link" onclick="navDetail('${c.id}')"><span class="sb-class-dot" style="background:${c.color}"></span><span class="sb-class-name">${c.name}</span></button>`).join('');const fc=document.getElementById('filter-class');if(fc){const cur=fc.value;fc.innerHTML='<option value="">All Classes</option>'+classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');fc.value=cur;}const ac=document.getElementById('a-class');if(ac)ac.innerHTML=classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');}
+
+// ---- ASSIGNMENTS ----
+function assignRowHTML(a,showActions=true){const cls=getClass(a.class_id),dot=cls?`<span style="color:${cls.color}">●</span> `:'',ec=a.is_extra_credit?`<span class="badge badge-purple" style="margin-left:4px;font-size:8px">EC</span>`:'',note=a.notes?`<span title="${a.notes.replace(/"/g,'&quot;')}" style="margin-left:4px;color:var(--fg3);cursor:help">ℹ</span>`:'',planDisplay=a.planned_date?`<span style="color:var(--accent)">${fmtDate(a.planned_date)}</span>`:'<span style="color:var(--fg3)">—</span>',actions=showActions?`<td><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm btn-done" onclick="toggleDone('${a.id}')">${a.status==='Done'?'↺':'✓'}</button><button class="btn btn-ghost btn-sm" onclick="openAssignModal('${a.id}')">Edit</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteAssign('${a.id}')">✕</button></div></td>`:'',nameCell=showActions?`${dot}${a.name}${ec}${note}`:`${dot}<span class="assign-name-link" onclick="openAssignModal('${a.id}')">${a.name}</span>${ec}${note}`;return`<tr><td>${nameCell}</td><td>${cls?cls.name:'—'}</td><td><span class="badge badge-gray">${a.type||'—'}</span></td><td>${fmtDate(a.due)}</td><td>${planDisplay}</td><td>${statusBadge(a.status)}</td><td>${gradeTd(a)}</td>${actions}</tr>`;}
+function renderAssignments(){const fc=document.getElementById('filter-class'),fs=document.getElementById('filter-status'),fcv=fc?fc.value:'',fsv=fs?fs.value:'';let filtered=assignments.filter(a=>(fcv===''||a.class_id===fcv)&&(fsv===''||a.status===fsv));if(!sortState.all.col){filtered=filtered.sort((a,b)=>(a.due||'9999')>(b.due||'9999')?1:-1);}else{filtered=applySortToList(filtered,'all');}document.getElementById('all-assign-rows').innerHTML=filtered.length?filtered.map(a=>assignRowHTML(a)).join(''):`<tr><td colspan="8"><div class="empty"><span class="emoji">📋</span>No assignments found.</div></td></tr>`;restoreSortHeaders('all');}
+
+// ---- PLANNER ----
+function setPlanViewMode(mode){planViewMode=mode;document.getElementById('vtab-due').classList.toggle('active',mode==='due');document.getElementById('vtab-myplan').classList.toggle('active',mode==='myplan');document.getElementById('myplan-csv-btns').style.display=mode==='myplan'?'flex':'none';renderPlanner();}
+function setPlanMode(mode){planMode=mode;planOffset=0;document.querySelectorAll('.plan-tab').forEach(t=>t.classList.remove('active'));document.getElementById('ptab-'+mode).classList.add('active');document.getElementById('plan-nav').style.display=mode==='range'?'none':'flex';renderPlanner();}
+function planNav(d){planOffset+=d;renderPlanner();}
+function renderPlanner(){if(planMode==='day')renderPlannerDay();else if(planMode==='week')renderPlannerWeek();else if(planMode==='month')renderPlannerMonth();else renderPlannerRange();}
+function getAssignsForDateDue(ds){return{planned:assignments.filter(a=>a.planned_date===ds),due:assignments.filter(a=>a.due===ds&&a.planned_date!==ds)};}
+function getMyPlanAssignsForDate(ds){return(myPlan[ds]||[]).map(id=>assignments.find(a=>a.id===id)).filter(Boolean);}
+function addToMyPlan(ds,aid){if(!myPlan[ds])myPlan[ds]=[];if(!myPlan[ds].includes(aid)){myPlan[ds].push(aid);save();toast('Added to My Plan');refreshCurrentPage();}}
+function removeFromMyPlan(ds,aid){if(myPlan[ds]){myPlan[ds]=myPlan[ds].filter(i=>i!==aid);if(!myPlan[ds].length)delete myPlan[ds];save();refreshCurrentPage();}}
+function moveMyPlanItem(fromDs,toDs,aid){
+  if(fromDs===toDs)return;
+  if(myPlan[fromDs])myPlan[fromDs]=myPlan[fromDs].filter(i=>i!==aid);
+  if(myPlan[fromDs]&&!myPlan[fromDs].length)delete myPlan[fromDs];
+  if(!myPlan[toDs])myPlan[toDs]=[];
+  if(!myPlan[toDs].includes(aid))myPlan[toDs].push(aid);
+  save();toast('Moved to '+fmtDate(toDs));refreshCurrentPage();
+}
+
+// My Plan modal
+function openMyPlanModal(ds){
+  myPlanModalDate=ds;const p=parseDate(ds);
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('myplan-modal-date-label').textContent=`${months[p.m-1]} ${p.d}, ${p.y}`;
+  const sel=document.getElementById('myplan-select'),existing=myPlan[ds]||[];
+  const available=assignments.filter(a=>a.status!=='Done'&&!existing.includes(a.id));
+  if(!available.length){sel.innerHTML='<option value="">— No available assignments —</option>';}
+  else{sel.innerHTML=available.map(a=>{const cls=getClass(a.class_id);return`<option value="${a.id}">${a.name}${cls?' ('+cls.name+')':''} — Due: ${fmtDate(a.due)} [${a.status}]</option>`;}).join('');}
+  document.getElementById('myplan-modal-info').textContent='';
+  document.getElementById('myplan-modal').classList.add('open');
+}
+function closeMyPlanModal(){document.getElementById('myplan-modal').classList.remove('open');myPlanModalDate=null;}
+function saveMyPlanEntry(){const id=document.getElementById('myplan-select').value;if(!id||!myPlanModalDate){toast('No assignment selected');return;}addToMyPlan(myPlanModalDate,id);closeMyPlanModal();}
+
+// ---- DRAG AND DROP for My Plan week view ----
+let dragAssignId=null,dragFromDate=null;
+function onDragStart(e,aid,fromDs){dragAssignId=aid;dragFromDate=fromDs;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',aid);e.target.classList.add('dragging');}
+function onDragEnd(e){e.target.classList.remove('dragging');document.querySelectorAll('.day-cell').forEach(c=>{c.classList.remove('drag-over');});}
+function onDragOver(e,ds){e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.day-cell').forEach(c=>c.classList.remove('drag-over'));const cell=document.querySelector(`.day-cell[data-date="${ds}"]`);if(cell)cell.classList.add('drag-over');}
+function onDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function onDrop(e,toDs){e.preventDefault();e.currentTarget.classList.remove('drag-over');if(dragAssignId&&dragFromDate&&dragFromDate!==toDs){moveMyPlanItem(dragFromDate,toDs,dragAssignId);}dragAssignId=null;dragFromDate=null;}
+
+function renderPlannerDay(){
+  const today=new Date();today.setHours(0,0,0,0);const d=new Date(today);d.setDate(today.getDate()+planOffset);const ds=d.toISOString().slice(0,10);
+  const dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('plan-label').textContent=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  if(planViewMode==='due'){const{planned,due}=getAssignsForDateDue(ds);document.getElementById('planner-body').innerHTML=`<div class="daily-big"><div style="display:flex;align-items:baseline;gap:10px"><div class="daily-date-num">${d.getDate()}</div><div><div class="syne" style="font-size:16px;font-weight:700">${dayNames[d.getDay()]}</div><div class="daily-date-rest">${months[d.getMonth()]} ${d.getFullYear()}</div></div></div></div><div class="plan-legend"><span><span class="legend-line solid" style="background:var(--primary)"></span> Planned to work on</span><span><span class="legend-line" style="border-top:2px dashed var(--red)"></span> Due today (not planned)</span></div>${planned.length===0&&due.length===0?`<div class="empty"><span class="emoji">😌</span>Nothing scheduled.</div>`:''}${planned.length?`<div class="syne" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);margin-bottom:10px">📌 Planned to Work On</div><div class="card" style="margin-bottom:20px"><table><thead><tr><th>Assignment</th><th>Class</th><th>Type</th><th>Due</th><th>Status</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${planned.map(a=>assignRowHTMLSimple(a)).join('')}</tbody></table></div>`:''}${due.length?`<div class="syne" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:10px">⚠️ Due Today</div><div class="card"><table><thead><tr><th>Assignment</th><th>Class</th><th>Type</th><th>Status</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${due.map(a=>assignRowHTMLSimple(a,true)).join('')}</tbody></table></div>`:''}`;}
+  else{const myItems=getMyPlanAssignsForDate(ds);document.getElementById('planner-body').innerHTML=`<div class="daily-big"><div style="display:flex;align-items:baseline;gap:10px;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:10px"><div class="daily-date-num">${d.getDate()}</div><div><div class="syne" style="font-size:16px;font-weight:700">${dayNames[d.getDay()]}</div><div class="daily-date-rest">${months[d.getMonth()]} ${d.getFullYear()}</div></div></div><button class="btn btn-ghost" style="align-self:center" onclick="openMyPlanModal('${ds}')">＋ Add Assignment to This Day</button></div></div>${myItems.length===0?`<div class="empty"><span class="emoji">🗒️</span>Nothing planned for this day.<br><br><button class="btn btn-main" onclick="openMyPlanModal('${ds}')">+ Add Assignment</button></div>`:`<div class="syne" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);margin-bottom:10px">🗒️ My Plan for Today</div><div class="card"><table><thead><tr><th>Assignment</th><th>Class</th><th>Type</th><th>Due</th><th>Status</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${myItems.map(a=>assignRowHTMLSimpleMyPlan(a,ds)).join('')}</tbody></table></div>`}`;}
+}
+
+function renderPlannerWeek(){
+  const ws=getWeekStartFromOffset(planOffset),we=new Date(ws);we.setDate(we.getDate()+6);
+  const today=new Date();today.setHours(0,0,0,0);
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('plan-label').textContent=ws.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+we.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(ws.getDate()+i);return d;});
+  if(planViewMode==='due'){
+    const gridHTML=days.map((d,i)=>{const isToday=d.getTime()===today.getTime(),ds=d.toISOString().slice(0,10),{planned,due}=getAssignsForDateDue(ds);return`<div class="day-cell ${isToday?'today':''}"><div class="day-header"><div class="day-num syne" ${isToday?'style="color:var(--primary)"':''}>${d.getDate()}</div><div class="day-name">${dayNames[i]}</div></div><div class="day-tasks">${[...planned.map(a=>{const c=getClass(a.class_id),col=c?c.color:'#8a90a8';return`<div class="day-task ${a.status==='Done'?'done-task':''}" style="background:${col}18;border-color:${col}" onclick="openAssignModal('${a.id}')"><span class="tc" style="color:${col}">${c?c.name:'?'}</span>📌 ${a.name}${a.is_extra_credit?' ✦':''}</div>`;}),...due.map(a=>{const c=getClass(a.class_id),col=c?c.color:'#8a90a8';return`<div class="day-task due-task ${a.status==='Done'?'done-task':''}" style="background:${col}10;border-color:${col}" onclick="openAssignModal('${a.id}')"><span class="tc" style="color:var(--red)">DUE</span>${a.name}</div>`;})].join('')}</div></div>`;}).join('');
+    const weekA=assignments.filter(a=>{const s=ws.toISOString().slice(0,10),e=we.toISOString().slice(0,10);return(a.planned_date&&a.planned_date>=s&&a.planned_date<=e)||(a.due&&a.due>=s&&a.due<=e);}).sort((a,b)=>(a.planned_date||a.due||'')>(b.planned_date||b.due||'')?1:-1);
+    document.getElementById('planner-body').innerHTML=`<div class="plan-legend"><span><span class="legend-line solid" style="background:var(--primary)"></span> 📌 Planned</span><span><span class="legend-line" style="border-top:2px dashed var(--red)"></span> Due</span></div><div class="week-grid">${gridHTML}</div><div class="syne" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);margin-bottom:12px">This Week</div><div class="card"><table><thead><tr><th>Assignment</th><th>Class</th><th>Type</th><th>Due</th><th>Plan Date</th><th>Status</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${weekA.length?weekA.map(a=>assignRowHTML(a)).join(''):`<tr><td colspan="8"><div class="empty"><span class="emoji">📅</span>Nothing this week.</div></td></tr>`}</tbody></table></div>`;
+  }else{
+    // My Plan week view with drag and drop
+    const gridHTML=days.map((d,i)=>{
+      const isToday=d.getTime()===today.getTime(),ds=d.toISOString().slice(0,10),myItems=getMyPlanAssignsForDate(ds);
+      const tasks=myItems.map(a=>{const c=getClass(a.class_id),col=c?c.color:'#8a90a8';return`<div class="day-task my-plan-task ${a.status==='Done'?'done-task':''}" style="background:${col}18;border-color:${col}" draggable="true" ondragstart="onDragStart(event,'${a.id}','${ds}')" ondragend="onDragEnd(event)" onclick="openMyPlanModal('${ds}');event.stopPropagation()"><span class="tc" style="color:${col}">${c?c.name:'?'}</span>🗒 ${a.name}</div>`;}).join('');
+      return`<div class="day-cell clickable-day ${isToday?'today':''}" data-date="${ds}" ondragover="onDragOver(event,'${ds}')" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${ds}')" onclick="openMyPlanModal('${ds}')"><div class="day-header" style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="day-num syne" ${isToday?'style="color:var(--primary)"':''}>${d.getDate()}</div><div class="day-name">${dayNames[i]}</div></div><span style="font-size:9px;color:var(--accent);margin-top:4px">＋</span></div><div class="day-tasks">${tasks}</div></div>`;
+    }).join('');
+    const allItems=days.flatMap(d=>{const ds=d.toISOString().slice(0,10);return getMyPlanAssignsForDate(ds).map(a=>({...a,_pd:ds}));});
+    document.getElementById('planner-body').innerHTML=`<div class="plan-legend"><span><span class="legend-line solid" style="background:var(--accent)"></span> 🗒️ My Plan (drag to move between days, click + to add)</span></div><div class="week-grid">${gridHTML}</div><div class="syne" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);margin-bottom:12px">My Plan This Week</div><div class="card"><table><thead><tr><th>Assignment</th><th>Class</th><th>Type</th><th>Due</th><th>Planned For</th><th>Status</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${allItems.length?allItems.map(a=>{const cls=getClass(a.class_id),dot=cls?`<span style="color:${cls.color}">●</span> `:'';return`<tr><td>${dot}${a.name}</td><td>${cls?cls.name:'—'}</td><td><span class="badge badge-gray">${a.type||'—'}</span></td><td>${fmtDate(a.due)}</td><td><span style="color:var(--accent)">${fmtDate(a._pd)}</span></td><td>${statusBadge(a.status)}</td><td>${gradeTd(a)}</td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm btn-done" onclick="toggleDone('${a.id}')">${a.status==='Done'?'↺':'✓'}</button><button class="btn btn-ghost btn-sm" onclick="openAssignModal('${a.id}')">Edit</button><button class="btn btn-ghost btn-sm btn-danger" onclick="removeFromMyPlan('${a._pd}','${a.id}');event.stopPropagation()">✕</button></div></td></tr>`;}).join(''):`<tr><td colspan="8"><div class="empty"><span class="emoji">🗒️</span>No plans this week.</div></td></tr>`}</tbody></table></div>`;
+  }
+}
+
+function renderPlannerMonth(){
+  const now=new Date();now.setHours(0,0,0,0);const base=new Date(now.getFullYear(),now.getMonth()+planOffset,1),yr=base.getFullYear(),mo=base.getMonth();
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('plan-label').textContent=months[mo]+' '+yr;
+  const today=new Date();today.setHours(0,0,0,0);const firstDay=new Date(yr,mo,1).getDay(),daysInMonth=new Date(yr,mo+1,0).getDate(),startPad=(firstDay+6)%7,dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let cells='<div class="month-grid">';dayNames.forEach(n=>{cells+=`<div style="text-align:center;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);padding:4px 0">${n}</div>`;});
+  for(let i=0;i<startPad;i++)cells+=`<div class="month-cell other-month"></div>`;
+  for(let d=1;d<=daysInMonth;d++){const ds=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,isToday=new Date(yr,mo,d).getTime()===today.getTime();
+    if(planViewMode==='due'){const{planned,due}=getAssignsForDateDue(ds);const dots=[...planned.map(a=>{const c=getClass(a.class_id);return`<div style="background:${c?c.color:'#8a90a8'};width:100%;padding:1px 4px;border-radius:3px;font-size:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:2px">📌${a.name}</div>`;}),...due.map(a=>{const c=getClass(a.class_id);return`<div style="border:1px dashed ${c?c.color:'#8a90a8'};width:100%;padding:1px 4px;border-radius:3px;font-size:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:2px;color:var(--red)">⚠${a.name}</div>`;})].join('');cells+=`<div class="month-cell ${isToday?'today':''}"><div class="month-header"><span class="syne" style="font-size:12px;font-weight:700${isToday?';color:var(--primary)':''}">${d}</span></div><div style="padding:3px">${dots}</div></div>`;}
+    else{
+      const myItems=getMyPlanAssignsForDate(ds),dots=myItems.map(a=>{const c=getClass(a.class_id);return`<div style="background:${c?c.color+'28':'rgba(91,138,240,.15)'};border-left:2px solid ${c?c.color:'var(--accent)'};width:100%;padding:1px 4px;border-radius:3px;font-size:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:2px">🗒${a.name}</div>`;}).join('');
+      cells+=`<div class="month-cell clickable-day ${isToday?'today':''}" data-date="${ds}" ondragover="onDragOver(event,'${ds}')" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${ds}')" onclick="openMyPlanModal('${ds}')"><div class="month-header" style="display:flex;justify-content:space-between;align-items:center"><span class="syne" style="font-size:12px;font-weight:700${isToday?';color:var(--primary)':''}">${d}</span><span style="font-size:9px;color:var(--accent)">＋</span></div><div style="padding:3px">${dots}</div></div>`;
+    }
+  }cells+='</div>';
+  const legend=planViewMode==='due'?`<div class="plan-legend"><span><span class="legend-line solid" style="background:var(--primary)"></span> 📌 Planned</span><span><span style="border:1px dashed var(--red);padding:0 4px;border-radius:2px;font-size:9px;color:var(--red)">⚠</span> Due</span></div>`:`<div class="plan-legend"><span><span class="legend-line solid" style="background:var(--accent)"></span> 🗒️ My Plan (click to add)</span></div>`;
+  document.getElementById('planner-body').innerHTML=legend+cells;
+}
+
+function renderPlannerRange(){
+  document.getElementById('planner-body').innerHTML=`<div class="range-row"><div class="form-group" style="min-width:180px"><label>From</label><input type="date" id="range-start" value="${rangeStart}" onchange="rangeStart=this.value;renderRangeResults()" /></div><div class="form-group" style="min-width:180px"><label>To</label><input type="date" id="range-end" value="${rangeEnd}" onchange="rangeEnd=this.value;renderRangeResults()" /></div></div><div id="range-results"></div>`;
+  if(rangeStart&&rangeEnd)renderRangeResults();
+}
+function renderRangeResults(){
+  const s=document.getElementById('range-start')?.value,e=document.getElementById('range-end')?.value;if(!s||!e){document.getElementById('range-results').innerHTML='';return;}rangeStart=s;rangeEnd=e;
+  if(planViewMode==='due'){const pl=assignments.filter(a=>a.planned_date&&a.planned_date>=s&&a.planned_date<=e),du=assignments.filter(a=>a.due&&a.due>=s&&a.due<=e&&!(a.planned_date&&a.planned_date>=s&&a.planned_date<=e)),all=[...pl,...du].sort((a,b)=>(a.planned_date||a.due||'')>(b.planned_date||b.due||'')?1:-1);document.getElementById('range-results').innerHTML=all.length?`<div class="card"><table><thead><tr><th>Assignment</th><th>Class</th><th>Type</th><th>Due</th><th>Plan Date</th><th>Status</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${all.map(a=>assignRowHTML(a)).join('')}</tbody></table></div>`:`<div class="empty"><span class="emoji">📅</span>No assignments in this range.</div>`;}
+  else{const allDates=[],cur=new Date(s),end=new Date(e);while(cur<=end){allDates.push(cur.toISOString().slice(0,10));cur.setDate(cur.getDate()+1);}const items=allDates.flatMap(ds=>getMyPlanAssignsForDate(ds).map(a=>({...a,_pd:ds}))).sort((a,b)=>a._pd>b._pd?1:-1);document.getElementById('range-results').innerHTML=items.length?`<div class="card"><table><thead><tr><th>Assignment</th><th>Class</th><th>Type</th><th>Due</th><th>Planned For</th><th>Status</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${items.map(a=>{const cls=getClass(a.class_id),dot=cls?`<span style="color:${cls.color}">●</span> `:'';return`<tr><td>${dot}${a.name}</td><td>${cls?cls.name:'—'}</td><td><span class="badge badge-gray">${a.type||'—'}</span></td><td>${fmtDate(a.due)}</td><td><span style="color:var(--accent)">${fmtDate(a._pd)}</span></td><td>${statusBadge(a.status)}</td><td>${gradeTd(a)}</td><td><button class="btn btn-ghost btn-sm btn-danger" onclick="removeFromMyPlan('${a._pd}','${a.id}')">✕</button></td></tr>`;}).join('')}</tbody></table></div>`:`<div class="empty"><span class="emoji">🗒️</span>No items in this range.</div>`;}
+}
+
+function assignRowHTMLSimple(a,isDue=false){const cls=getClass(a.class_id),dot=cls?`<span style="color:${cls.color}">●</span> `:'',ec=a.is_extra_credit?`<span class="badge badge-purple" style="margin-left:4px;font-size:8px">EC</span>`:'';return`<tr><td>${dot}${a.name}${ec}</td><td>${cls?cls.name:'—'}</td><td><span class="badge badge-gray">${a.type||'—'}</span></td>${!isDue?`<td>${fmtDate(a.due)}</td>`:''}<td>${statusBadge(a.status)}</td><td>${gradeTd(a)}</td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm btn-done" onclick="toggleDone('${a.id}')">${a.status==='Done'?'↺':'✓'}</button><button class="btn btn-ghost btn-sm" onclick="openAssignModal('${a.id}')">Edit</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteAssign('${a.id}')">✕</button></div></td></tr>`;}
+function assignRowHTMLSimpleMyPlan(a,ds){const cls=getClass(a.class_id),dot=cls?`<span style="color:${cls.color}">●</span> `:'',ec=a.is_extra_credit?`<span class="badge badge-purple" style="margin-left:4px;font-size:8px">EC</span>`:'';return`<tr><td>${dot}${a.name}${ec}</td><td>${cls?cls.name:'—'}</td><td><span class="badge badge-gray">${a.type||'—'}</span></td><td>${fmtDate(a.due)}</td><td>${statusBadge(a.status)}</td><td>${gradeTd(a)}</td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm btn-done" onclick="toggleDone('${a.id}')">${a.status==='Done'?'↺':'✓'}</button><button class="btn btn-ghost btn-sm" onclick="openAssignModal('${a.id}')">Edit</button><button class="btn btn-ghost btn-sm btn-danger" onclick="removeFromMyPlan('${ds}','${a.id}')">✕</button></div></td></tr>`;}
+
+// ---- CLASS DETAIL ----
+function renderDetail(){
+  const cls=getClass(currentDetailId);if(!cls){document.getElementById('detail-body').innerHTML='<div class="empty">Class not found.</div>';return;}
+  const chips=[];if(cls.teacher)chips.push(`👤 ${cls.teacher}`);if(cls.credits)chips.push(`📚 ${cls.credits} credits`);if(cls.schedule_mode==='online'){chips.push('🌐 Online');if(cls.platform)chips.push(cls.platform);}else{if(cls.days)chips.push(`📅 ${cls.days}`);if(cls.time_start)chips.push(`🕐 ${fmtTime(cls.time_start)}${cls.time_end?' – '+fmtTime(cls.time_end):''}`);if(cls.room)chips.push(`📍 ${cls.room}`);}
+  document.getElementById('detail-header').innerHTML=`<div><div style="display:flex;align-items:center;gap:10px"><span style="width:10px;height:10px;border-radius:50%;background:${cls.color};display:inline-block"></span><span class="syne" style="font-size:18px;font-weight:800">${cls.name}</span></div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px">${chips.map(ch=>`<span class="chip">${ch}</span>`).join('')}</div></div><div style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="openClassModal('${cls.id}')">✏ Edit</button><button class="btn btn-ghost btn-sm" onclick="nav('classes',null)">← Back</button></div>`;
+  document.getElementById('detail-tabs').innerHTML=[['grades','📈 Grades'],['assignments','📋 Assignments'],['schedule','🗓 Schedule']].map(([k,l])=>`<button class="tab-btn ${detailTab===k?'active':''}" onclick="switchTab('${k}')">${l}</button>`).join('');
+  renderDetailBody(cls);
+}
+function switchTab(tab){detailTab=tab;renderDetail();}
+function renderDetailBody(cls){
+  const clsA=assignments.filter(a=>a.class_id===cls.id),avg=classAvg(cls.id),pct=avg!==null?parseFloat(avg):null;
+  const reg=clsA.filter(a=>!a.is_extra_credit&&a.points_earned!=null&&a.weight!=null&&parseFloat(a.weight)>0);
+  const ec=clsA.filter(a=>a.is_extra_credit&&a.points_earned!=null&&a.weight!=null&&parseFloat(a.weight)>0);
+  const te=reg.reduce((s,a)=>s+parseFloat(a.points_earned),0),tp=reg.reduce((s,a)=>s+parseFloat(a.weight),0);
+  const baseAvg=reg.length&&tp>0?(te/tp*100).toFixed(1):null;
+  const graded=clsA.filter(a=>a.points_earned!=null||a.weight!=null).sort((a,b)=>(a.due||'')>(b.due||'')?-1:1);
+  const all=clsA.slice().sort((a,b)=>(a.due||'')>(b.due||'')?1:-1);
+  let html='';
+  if(detailTab==='grades'){
+    const rows=[['Graded Assignments',reg.length],['Points Earned',tp>0?`${te} / ${tp} pts`:'—'],['Base Average',baseAvg!==null?baseAvg+'%':'—'],['Extra Credit Items',ec.length+' item'+(ec.length!==1?'s':'')],['Boosted Average',avg!==null?avg+'%':'—'],['Ungraded',clsA.filter(a=>a.points_earned==null&&a.weight==null).length],['Completion',`${clsA.filter(a=>a.status==='Done').length} / ${clsA.length}`]];
+    html=`<div style="display:grid;grid-template-columns:200px 1fr;gap:14px;margin-bottom:20px"><div class="card card-pad" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center"><div class="serif" style="font-size:72px;font-weight:600;color:${gradeColor(pct)};line-height:1">${avg!==null?gradeToLetter(avg):'—'}</div><div style="font-size:13px;color:${gradeColor(pct)};margin-top:3px">${avg!==null?avg+'%':'No grades yet'}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);margin-top:7px">Class Average</div></div><div class="card card-pad"><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:10px">Breakdown</div>${rows.map(([k,v])=>`<div class="breakdown-row"><span class="breakdown-key">${k}</span><span class="breakdown-val">${v}</span></div>`).join('')}</div></div><div class="syne" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);margin-bottom:10px">Graded Assignments</div><div class="card"><table><thead><tr><th>Assignment</th><th>Type</th><th>Points Earned</th><th>Total Points</th><th>%</th><th>Letter</th><th>Extra Credit</th><th>Due</th></tr></thead><tbody>${graded.length?graded.map(a=>{const gp=gradePercent(a);return`<tr><td>${a.name}${a.is_extra_credit?'<span class="badge badge-purple" style="margin-left:5px;font-size:8px">EC</span>':''}</td><td><span class="badge badge-gray">${a.type||'—'}</span></td><td style="color:${gradeColor(gp)};font-weight:500">${a.points_earned!=null?a.points_earned:'—'}</td><td>${a.weight!=null?a.weight:'—'}</td><td style="color:${gradeColor(gp)}">${gp!=null?gp.toFixed(1)+'%':'—'}</td><td style="color:${gradeColor(gp)}">${gp!=null?gradeToLetter(gp):'—'}</td><td>${a.is_extra_credit?'<span class="badge badge-purple">EC</span>':'—'}</td><td>${fmtDate(a.due)}</td></tr>`;}).join(''):`<tr><td colspan="8"><div class="empty"><span class="emoji">📝</span>No graded assignments yet.</div></td></tr>`}</tbody></table></div>`;
+  }else if(detailTab==='assignments'){
+    html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div class="syne" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)">All Assignments</div><button class="btn btn-main" style="font-size:11px" onclick="openAssignModal(null,'${cls.id}')">+ Add</button></div><div class="card"><table><thead><tr><th>Assignment</th><th>Type</th><th>Due</th><th>Plan Date</th><th>Status</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${all.length?all.map(a=>{const ec=a.is_extra_credit?`<span class="badge badge-purple" style="margin-left:4px;font-size:8px">EC</span>`:'',pl=a.planned_date?`<span style="color:var(--accent)">${fmtDate(a.planned_date)}</span>`:'—';return`<tr><td>${a.name}${ec}</td><td><span class="badge badge-gray">${a.type||'—'}</span></td><td>${fmtDate(a.due)}</td><td>${pl}</td><td>${statusBadge(a.status)}</td><td>${gradeTd(a)}</td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm btn-done" onclick="toggleDone('${a.id}')">${a.status==='Done'?'↺':'✓'}</button><button class="btn btn-ghost btn-sm" onclick="openAssignModal('${a.id}')">Edit</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteAssign('${a.id}')">✕</button></div></td></tr>`;}).join(''):`<tr><td colspan="7"><div class="empty"><span class="emoji">📋</span>No assignments yet.</div></td></tr>`}</tbody></table></div>`;
+  }else{html=cls.schedule_mode==='online'?`<div style="display:inline-flex;align-items:center;gap:14px;padding:20px;background:rgba(91,138,240,.08);border:1px solid rgba(91,138,240,.2);border-radius:10px"><span style="font-size:36px">🌐</span><div><div class="syne" style="font-size:15px;font-weight:700;color:var(--accent)">Online Class</div>${cls.platform?`<div style="font-size:11px;color:var(--fg);margin-top:7px">Platform: <strong>${cls.platform}</strong></div>`:''}</div></div>`:`<div class="card card-pad" style="max-width:380px"><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:10px">Schedule Details</div>${[cls.days&&['📅 Days',cls.days],cls.time_start&&['🕐 Start',fmtTime(cls.time_start)],cls.time_end&&['🏁 End',fmtTime(cls.time_end)],cls.room&&['📍 Room',cls.room]].filter(Boolean).map(([k,v])=>`<div class="breakdown-row"><span class="breakdown-key">${k}</span><span class="breakdown-val">${v}</span></div>`).join('')||`<div class="empty"><span class="emoji">🗓</span>No schedule info yet.</div>`}</div>`;}
+  document.getElementById('detail-body').innerHTML=html;
+}
+
+// ---- ASSIGN MODAL ----
+function openAssignModal(id,prefillClassId){
+  editingAssignId=id||null;document.getElementById('assign-modal-title').textContent=id?'Edit Assignment':'Add Assignment';
+  const ac=document.getElementById('a-class');ac.innerHTML=classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  populateDays('a-due-day');populateYears('a-due-year');populateDays('a-plan-day');populateYears('a-plan-year');
+  document.getElementById('a-points-earned').oninput=updateGradePreview;document.getElementById('a-weight').oninput=updateGradePreview;
+  if(id){const a=assignments.find(x=>x.id===id);if(a){document.getElementById('a-name').value=a.name||'';ac.value=a.class_id||'';document.getElementById('a-type').value=a.type||'Homework';const due=parseDate(a.due);document.getElementById('a-due-month').value=due.m||'';document.getElementById('a-due-day').value=due.d||'';document.getElementById('a-due-year').value=due.y||'';const plan=parseDate(a.planned_date);document.getElementById('a-plan-month').value=plan.m||'';document.getElementById('a-plan-day').value=plan.d||'';document.getElementById('a-plan-year').value=plan.y||'';document.getElementById('a-status').value=a.status||'Pending';document.getElementById('a-points-earned').value=a.points_earned!=null?a.points_earned:'';document.getElementById('a-weight').value=a.weight!=null?a.weight:'';document.getElementById('a-ec').checked=!!a.is_extra_credit;document.getElementById('a-notes').value=a.notes||'';}}
+  else{document.getElementById('a-name').value='';if(prefillClassId)ac.value=prefillClassId;document.getElementById('a-type').value='Homework';['a-due-month','a-due-day','a-due-year','a-plan-month','a-plan-day','a-plan-year'].forEach(id=>document.getElementById(id).value='');document.getElementById('a-status').value='Pending';document.getElementById('a-points-earned').value='';document.getElementById('a-weight').value='';document.getElementById('a-ec').checked=false;document.getElementById('a-notes').value='';}
+  updateGradePreview();document.getElementById('assign-modal').classList.add('open');
+}
+function updateGradePreview(){const pe=parseFloat(document.getElementById('a-points-earned').value),wt=parseFloat(document.getElementById('a-weight').value),el=document.getElementById('grade-preview');if(!isNaN(pe)&&!isNaN(wt)&&wt>0){const pct=pe/wt*100;el.innerHTML=`<span style="color:${gradeColor(pct)}">${pe} / ${wt} pts = ${pct.toFixed(1)}% (${gradeToLetter(pct)})</span>`;}else el.innerHTML='';}
+function closeAssignModal(){document.getElementById('assign-modal').classList.remove('open');}
+function toggleEC(){const cb=document.getElementById('a-ec');cb.checked=!cb.checked;}
+function saveAssignment(){
+  const name=document.getElementById('a-name').value.trim();if(!name){alert('Assignment name is required.');return;}
+  const peRaw=document.getElementById('a-points-earned').value,wtRaw=document.getElementById('a-weight').value;
+  const data={name,class_id:document.getElementById('a-class').value,type:document.getElementById('a-type').value,due:buildDate(document.getElementById('a-due-month').value,document.getElementById('a-due-day').value,document.getElementById('a-due-year').value),planned_date:buildDate(document.getElementById('a-plan-month').value,document.getElementById('a-plan-day').value,document.getElementById('a-plan-year').value),priority:'Medium',status:document.getElementById('a-status').value,points_earned:peRaw!==''?parseFloat(peRaw):null,weight:wtRaw!==''?parseFloat(wtRaw):null,is_extra_credit:document.getElementById('a-ec').checked,notes:document.getElementById('a-notes').value};
+  if(editingAssignId){const idx=assignments.findIndex(a=>a.id===editingAssignId);if(idx>-1)assignments[idx]={...assignments[idx],...data};toast('Assignment updated');}
+  else{data.id=uid();assignments.push(data);toast('Assignment added');}
+  save();closeAssignModal();refreshCurrentPage();
+}
+// toggleDone preserves due date — only toggles status
+function toggleDone(id){const a=assignments.find(x=>x.id===id);if(a){a.status=a.status==='Done'?'Pending':'Done';save();refreshCurrentPage();}}
+function deleteAssign(id){if(!confirm('Delete this assignment?'))return;assignments=assignments.filter(a=>a.id!==id);Object.keys(myPlan).forEach(ds=>{myPlan[ds]=myPlan[ds].filter(i=>i!==id);if(!myPlan[ds].length)delete myPlan[ds];});save();toast('Removed');refreshCurrentPage();}
+
+// ---- CLASS MODAL ----
+function buildColorPicker(){document.getElementById('color-picker').innerHTML=COLORS.map(c=>`<div class="color-swatch ${c===selectedColor?'selected':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join('');}
+function pickColor(c){selectedColor=c;document.querySelectorAll('.color-swatch').forEach(el=>el.classList.toggle('selected',el.style.background===c||el.style.backgroundColor===c));}
+function setMode(m){scheduleMode=m;document.getElementById('mode-inperson').classList.toggle('active',m==='inperson');document.getElementById('mode-online').classList.toggle('active',m==='online');document.getElementById('schedule-inperson').style.display=m==='inperson'?'':'none';document.getElementById('schedule-online').style.display=m==='online'?'':'none';}
+function openClassModal(id){
+  editingClassId=id||null;document.getElementById('class-modal-title').textContent=id?'Edit Class':'Add Class';
+  if(id){const c=classes.find(x=>x.id===id);if(c){document.getElementById('c-name').value=c.name||'';document.getElementById('c-teacher').value=c.teacher||'';document.getElementById('c-credits').value=c.credits!=null?c.credits:'';selectedColor=c.color||COLORS[0];scheduleMode=c.schedule_mode||'inperson';document.getElementById('c-days').value=c.days||'';document.getElementById('c-start').value=c.time_start||'';document.getElementById('c-end').value=c.time_end||'';document.getElementById('c-room').value=c.room||'';document.getElementById('c-platform').value=c.platform||'';}}
+  else{document.getElementById('c-name').value='';document.getElementById('c-teacher').value='';document.getElementById('c-credits').value='';selectedColor=COLORS[0];scheduleMode='inperson';['c-days','c-start','c-end','c-room','c-platform'].forEach(id=>document.getElementById(id).value='');}
+  setMode(scheduleMode);buildColorPicker();document.getElementById('class-modal').classList.add('open');
+}
+function closeClassModal(){document.getElementById('class-modal').classList.remove('open');}
+function saveClass(){const name=document.getElementById('c-name').value.trim();if(!name){alert('Class name is required.');return;}const data={name,teacher:document.getElementById('c-teacher').value,credits:document.getElementById('c-credits').value?parseFloat(document.getElementById('c-credits').value):null,color:selectedColor,schedule_mode:scheduleMode,days:document.getElementById('c-days').value,time_start:document.getElementById('c-start').value,time_end:document.getElementById('c-end').value,room:document.getElementById('c-room').value,platform:document.getElementById('c-platform').value};if(editingClassId){const idx=classes.findIndex(c=>c.id===editingClassId);if(idx>-1)classes[idx]={...classes[idx],...data};toast('Class updated');}else{data.id=uid();classes.push(data);toast('Class added');}save();closeClassModal();updateClassLinks();refreshCurrentPage();}
+function deleteClass(id){if(!confirm('Delete this class? Assignments will remain but lose their class link.'))return;classes=classes.filter(c=>c.id!==id);save();updateClassLinks();toast('Class removed');refreshCurrentPage();}
+
+// ---- REFRESH ----
+function refreshCurrentPage(){const v=[...document.querySelectorAll('.page.active')][0];if(!v)return;const id=v.id;if(id==='page-dashboard')renderDashboard();else if(id==='page-planner')renderPlanner();else if(id==='page-assignments'){updateClassLinks();renderAssignments();}else if(id==='page-classes')renderClasses();else if(id==='page-detail')renderDetail();updateClassLinks();}
+
+// ---- CSV EXPORT ----
+function exportCSV(){
+  const cH=['name','teacher','credits','schedule_mode','days','time_start','time_end','room','platform','color'],aH=['name','class_name','type','due_month','due_day','due_year','planned_month','planned_day','planned_year','priority','status','points_earned','weight','is_extra_credit','notes'];
+  const esc=v=>{const s=v==null?'':String(v);return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;};
+  const cm={};classes.forEach(c=>{cm[c.id]=c.name;});
+  const lines=['## CLASSES',cH.join(',')];classes.forEach(c=>lines.push(cH.map(h=>esc(c[h])).join(',')));
+  lines.push('','## ASSIGNMENTS',aH.join(','));
+  assignments.forEach(a=>{const due=parseDate(a.due),plan=parseDate(a.planned_date);lines.push(aH.map(h=>{if(h==='class_name')return esc(cm[a.class_id]||'');if(h==='due_month')return esc(due.m||'');if(h==='due_day')return esc(due.d||'');if(h==='due_year')return esc(due.y||'');if(h==='planned_month')return esc(plan.m||'');if(h==='planned_day')return esc(plan.d||'');if(h==='planned_year')return esc(plan.y||'');if(h==='is_extra_credit')return esc(a.is_extra_credit?'true':'false');return esc(a[h]);}).join(','));});
+  const fname=(appSettings.agendaFilename||'Agenda.csv');
+  const blob=new Blob([lines.join('\n')],{type:'text/csv'});const url=URL.createObjectURL(blob);const el=document.createElement('a');el.href=url;el.download=fname;el.click();URL.revokeObjectURL(url);toast('Saved as '+fname);
+}
+function exportMyPlanCSV(){
+  const esc=v=>{const s=v==null?'':String(v);return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;};
+  const lines=['date,assignment_name,class_name,due_date,status'];
+  Object.keys(myPlan).sort().forEach(ds=>{(myPlan[ds]||[]).forEach(id=>{const a=assignments.find(x=>x.id===id);if(!a)return;const cls=getClass(a.class_id);lines.push([esc(ds),esc(a.name),esc(cls?cls.name:''),esc(a.due||''),esc(a.status||'')].join(','));});});
+  const fname=(appSettings.myplanFilename||'MyPlan.csv');
+  const blob=new Blob([lines.join('\n')],{type:'text/csv'});const url=URL.createObjectURL(blob);const el=document.createElement('a');el.href=url;el.download=fname;el.click();URL.revokeObjectURL(url);toast('Exported as '+fname);
+}
+
+// ---- CSV IMPORT ----
+function processAgendaCSVText(text){
+  const parsedC=[],parsedA=[];const lines=text.split(/\r?\n/);let mode=null,headers=[];
+  for(let i=0;i<lines.length;i++){const raw=lines[i],trimmed=raw.trim();if(!trimmed)continue;if(/^##\s*CLASSES/i.test(trimmed)){mode='classes';headers=[];continue;}if(/^##\s*ASSIGNMENTS/i.test(trimmed)){mode='assignments';headers=[];continue;}if(!mode)continue;const vals=csvLine(raw);if(!headers.length){headers=vals.map(h=>h.trim());continue;}const row={};headers.forEach((h,idx)=>{row[h]=(vals[idx]||'').trim();});
+    if(mode==='classes'&&row.name)parsedC.push({name:row.name,teacher:row.teacher||'',credits:row.credits?parseFloat(row.credits):null,schedule_mode:row.schedule_mode||'inperson',days:row.days||'',time_start:row.time_start||'',time_end:row.time_end||'',room:row.room||'',platform:row.platform||'',color:row.color||COLORS[0]});
+    if(mode==='assignments'&&row.name){let dueStr='';if(row.due_year&&row.due_month&&row.due_day)dueStr=buildDate(parseInt(row.due_month),parseInt(row.due_day),parseInt(row.due_year));else if(row.due)dueStr=row.due;let planStr='';if(row.planned_year&&row.planned_month&&row.planned_day)planStr=buildDate(parseInt(row.planned_month),parseInt(row.planned_day),parseInt(row.planned_year));else if(row.planned_date)planStr=row.planned_date;parsedA.push({name:row.name,class_name:row.class_name||'',type:row.type||'Homework',due:dueStr,planned_date:planStr,priority:row.priority||'Medium',status:row.status||'Pending',points_earned:(row.points_earned!==''&&row.points_earned!=null)?parseFloat(row.points_earned):null,weight:(row.weight!==''&&row.weight!=null)?parseFloat(row.weight):null,is_extra_credit:row.is_extra_credit==='true',notes:row.notes||''});}
+  }
+  const n2id={};classes.forEach(c=>{n2id[c.name.toLowerCase()]=c.id;});
+  parsedC.forEach(c=>{const key=c.name.toLowerCase();if(!n2id[key]){c.id=uid();classes.push(c);n2id[key]=c.id;}});
+  assignments=parsedA.map(a=>{const cn=a.class_name;delete a.class_name;return{...a,id:uid(),class_id:n2id[cn.toLowerCase()]||''};});
+  save();updateClassLinks();renderDashboard();nav('dashboard',document.querySelector('.sb-link'));
+  return{classes:parsedC.length,assignments:assignments.length};
+}
+function importCSV(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{const res=processAgendaCSVText(ev.target.result);toast(`✓ Imported ${res.classes} classes, ${res.assignments} assignments`);};r.readAsText(file);e.target.value='';}
+
+// ---- MY PLAN IMPORT ----
+function importMyPlanCSV(e){
+  const file=e.target.files?.[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const text=ev.target.result,lines=text.split(/\r?\n/),headers=csvLine(lines[0]).map(h=>h.trim());
+    const dateIdx=headers.indexOf('date'),nameIdx=headers.indexOf('assignment_name');
+    if(dateIdx<0||nameIdx<0){alert('Invalid MyPlan CSV: missing "date" or "assignment_name" columns.\nExport your plan first to get the correct format.');return;}
+    const newPlan={};let matched=0,skipped=0;
+    for(let i=1;i<lines.length;i++){const raw=lines[i].trim();if(!raw)continue;const vals=csvLine(lines[i]),ds=(vals[dateIdx]||'').trim(),aname=(vals[nameIdx]||'').trim();if(!ds||!aname)continue;const a=assignments.find(x=>x.name.toLowerCase()===aname.toLowerCase());if(!a){skipped++;continue;}if(!newPlan[ds])newPlan[ds]=[];if(!newPlan[ds].includes(a.id)){newPlan[ds].push(a.id);matched++;}}
+    if(matched===0&&skipped>0){toast(`⚠ No assignments matched (${skipped} skipped). Load Agenda.csv first, then import MyPlan.csv.`);return;}
+    myPlan=newPlan;save();renderPlanner();toast(`✓ Imported ${matched} plan entries${skipped?' ('+skipped+' unmatched)':''}`);
+  };
+  r.readAsText(file);e.target.value='';
+}
+
+// ---- AUTOLOAD ----
+async function tryAutoloadAgenda(){try{const res=await fetch('Agenda.csv',{cache:'no-cache'});if(!res.ok)return false;const text=await res.text();if(!text.includes('## CLASSES')&&!text.includes('## ASSIGNMENTS'))return false;const r=processAgendaCSVText(text);toast(`✓ Autoloaded Agenda.csv: ${r.classes} classes, ${r.assignments} assignments`);return true;}catch(e){return false;}}
+async function tryAutoloadMyPlan(){try{const res=await fetch('MyPlan.csv',{cache:'no-cache'});if(!res.ok)return false;const text=await res.text(),lines=text.split(/\r?\n/);if(!lines[0]||!lines[0].includes('date'))return false;const headers=csvLine(lines[0]).map(h=>h.trim()),dateIdx=headers.indexOf('date'),nameIdx=headers.indexOf('assignment_name');if(dateIdx<0||nameIdx<0)return false;const newPlan={};let matched=0;for(let i=1;i<lines.length;i++){const raw=lines[i].trim();if(!raw)continue;const vals=csvLine(lines[i]),ds=(vals[dateIdx]||'').trim(),aname=(vals[nameIdx]||'').trim();if(!ds||!aname)continue;const a=assignments.find(x=>x.name.toLowerCase()===aname.toLowerCase());if(!a)continue;if(!newPlan[ds])newPlan[ds]=[];if(!newPlan[ds].includes(a.id)){newPlan[ds].push(a.id);matched++;}}if(matched>0){myPlan=newPlan;save();toast(`✓ Autoloaded MyPlan.csv: ${matched} entries`);}return matched>0;}catch(e){return false;}}
+
+// ---- MODAL CLOSE ON OVERLAY ----
+document.getElementById('assign-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAssignModal();});
+document.getElementById('class-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeClassModal();});
+document.getElementById('myplan-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMyPlanModal();});
+document.getElementById('settings-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSettings();});
+document.getElementById('grade-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeGradeModal();});
+
+// ---- INIT ----
+applyTheme(currentTheme);
+load();updateClassLinks();renderDashboard();
+(async function(){if(appSettings.autoloadAgenda){const ok=await tryAutoloadAgenda();if(ok&&appSettings.autoloadMyplan)await tryAutoloadMyPlan();}else if(appSettings.autoloadMyplan){await tryAutoloadMyPlan();}})();
+</script>
+</body>
+</html>
