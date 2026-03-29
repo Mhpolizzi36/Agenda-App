@@ -311,7 +311,7 @@ tbody tr:hover{background:rgba(58,64,85,.3)}
         <div class="form-group"><label>Class</label><select id="a-class"></select></div>
       </div>
       <div class="form-grid form-grid-2">
-        <div class="form-group"><label>Type</label><select id="a-type"><option>Homework</option><option>Essay</option><option>Quiz</option><option>Exam</option><option>Project</option><option>Lab</option><option>Reading</option><option>Other</option></select></div>
+        <div class="form-group"><label>Type</label><select id="a-type"><option>Essay</option><option>Quiz</option><option>Exam</option><option>Project</option><option>Lab</option><option>Discussion</option><option>Reading</option><option>Other</option></select></div>
         <div class="form-group"><label>Status</label><select id="a-status"><option selected>Pending</option><option>Planning</option><option>Done</option><option>Overdue</option></select></div>
       </div>
       <div>
@@ -629,7 +629,7 @@ function openMyPlanModal(ds){
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('myplan-modal-date-label').textContent=`${months[p.m-1]} ${p.d}, ${p.y}`;
   const sel=document.getElementById('myplan-select'),existing=myPlan[ds]||[];
-  const available=assignments.filter(a=>a.status!=='Done'&&!existing.includes(a.id));
+  const available=assignments.filter(a=>a.status=='Planning'&&!existing.includes(a.id));
   if(!available.length){sel.innerHTML='<option value="">— No available assignments —</option>';}
   else{sel.innerHTML=available.map(a=>{const cls=getClass(a.class_id);return`<option value="${a.id}">${a.name}${cls?' ('+cls.name+')':''} — Due: ${fmtDate(a.due)} [${a.status}]</option>`;}).join('');}
   document.getElementById('myplan-modal-info').textContent='';
